@@ -1,0 +1,8 @@
+{
+  "name": "huike-local-demo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Local competition document demo",
+  "dependencies": { "pdfjs-dist": "5.4.624" },
+  "devDependencies": { "playwright": "1.58.2" }
+}

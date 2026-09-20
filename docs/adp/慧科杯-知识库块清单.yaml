@@ -1,0 +1,242 @@
+# 慧科杯知识库块清单（机器可读）
+#
+# 字段一律沿用 04-比赛资料进入系统.md 的 CompetitionDocument / EvidenceChunk 词汇：
+#   track_scope / doc_type / published_at / record_status / section / page / source_locator
+# 不使用“最新”“过期”这类自造状态：
+#   - 资料是否还可用，只看 record_status（active / withdrawn）；
+#   - 两份资料对同一事实给出不同值时，写在 conflict_fields，由提示词规则并列展示，不设文档级 priority 覆盖。
+#
+# track_aliases（短名，仅本文件内使用）：
+#   null → 两赛道通用
+#   PBL  → huike-2026-pbl（PBL 项目开发赛）
+#   AI   → huike-2026-ai-agent（AI 智能体应用赛）
+
+competition:
+  competition_id: huike-2026
+  name: 慧科杯AI创新大赛
+  edition: 2026
+  organizer: 浙江广厦建设职业技术大学
+  tracks:
+    - track_id: huike-2026-pbl
+      track_name: PBL项目开发赛
+    - track_id: huike-2026-ai-agent
+      track_name: AI智能体应用赛
+
+documents:
+  - document_id: huike-2026-notice-20260605
+    title: 2026年6月5日关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知
+    doc_type: 比赛通知
+    publisher: 浙江广厦建设职业技术大学信息学院、深圳慧科未来教育科技有限公司
+    published_at: "2026-06-05"
+    track_scope: null
+    record_status: active
+    source_type: file
+    source_locator_hint: 原文 6 页扫描件 PDF，无文字层
+    text_file: docs/adp/data/慧科杯-知识库上传-通知2026-06-05.md
+    relation_note: >-
+      AI 赛道的时间与培训类事实与海报不一致（见各块 conflict_fields）；本通知未被任何资料声明作废，
+      AI 赛道之外的 PBL 事实仍以本通知为唯一依据。
+  - document_id: huike-2026-poster-202609
+    title: 2026年“慧科杯”AI创新大赛 · AI 智能体应用赛道海报
+    doc_type: 赛道海报
+    publisher: 浙江广厦建设职业技术大学信息学院
+    published_at: "2026-09"
+    track_scope: [huike-2026-ai-agent]
+    record_status: active
+    source_type: file
+    source_locator_hint: 单张 JPG 图片，无文字层，人工转录
+    text_file: docs/adp/data/慧科杯-知识库上传-海报2026-09.md
+    relation_note: >-
+      仅覆盖 AI 赛道，未涉及 PBL；未声明替代 2026-06-05 通知；未载明报名截止日期。
+
+# 每个块一条；text_file 内以“## 块 <chunk_id> ｜…”开头，块间以 --- 分隔。
+chunks:
+  - chunk_id: N01
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 1
+    section: 通知引言与赛事定位
+    facts: [赛事名称, 举办背景, 三实教学模式, 技术支撑]
+    conflict_fields: []
+  - chunk_id: N02
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 1
+    section: 一、大赛宗旨
+    facts: [双平行赛道, 赛事目的]
+    conflict_fields: []
+  - chunk_id: N03
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 1
+    section: 二、组织架构与技术支持
+    facts: [主办单位, 承办单位, 组委会, 评审委员会, 技术支持, ADP官网地址]
+    conflict_fields: []
+  - chunk_id: N04
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 1
+    section: 三、参赛对象与组队人数
+    facts: [参赛对象, 组队人数1至5人, 跨专业跨年级]
+    conflict_fields: []
+  - chunk_id: N05
+    document_id: huike-2026-notice-20260605
+    track: PBL
+    page: 2
+    section: 四（一）PBL项目开发赛时间安排
+    facts: [报名截止2026-06-20, 作品提交2026-06-24, 评审2026-06-24至06-28, 答辩2026-07-01, 地点信息学院B2-324]
+    conflict_fields: []
+  - chunk_id: N06
+    document_id: huike-2026-notice-20260605
+    track: AI
+    page: 2
+    section: 四（二）AI智能体应用赛时间安排
+    facts: [报名截止2026-06-30, 培训2026-07中旬至08上旬, 初赛提交2026-08-22, 初赛评审2026-08-23至08-31, 决赛提交2026-09-12, 答辩2026-09-16, 作品展示2026-09下旬]
+    conflict_fields: [培训时间, 初赛提交截止, 决赛材料提交截止, 现场答辩日期, 优秀作品展示时间]
+  - chunk_id: N07
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 2
+    section: 五（一）大赛主题 与（二）参赛赛道总述
+    facts: [大赛主题, 两赛道独立评审独立评奖]
+    conflict_fields: []
+  - chunk_id: N08
+    document_id: huike-2026-notice-20260605
+    track: PBL
+    page: 2
+    section: 赛道一 PBL项目开发赛介绍
+    facts: [作品范围, 不限制AI方向, 示例项目]
+    conflict_fields: []
+  - chunk_id: N09
+    document_id: huike-2026-notice-20260605
+    track: AI
+    page: 3
+    section: 赛道二 AI智能体应用赛介绍与五大方向
+    facts: [须用腾讯云ADP与混元, 五大方向, 立足真实场景]
+    conflict_fields: [方向清单]
+  - chunk_id: N10
+    document_id: huike-2026-notice-20260605
+    track: AI
+    page: 3
+    section: 五（三）赛前专项培训安排
+    facts: [四期专项公益培训, 四期课程名]
+    conflict_fields: [培训时间与期次]
+  - chunk_id: N11
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 3
+    section: 六（一）报名备案 与（二）初赛作品提交
+    facts: [报名表, 官方赛事通知群, 弃赛规则, PBL材料清单, AI材料清单]
+    conflict_fields: []
+  - chunk_id: N12
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 4
+    section: 六（三）初赛评审 （四）决赛作品提交 （五）决赛现场答辩
+    facts: [匿名线上评审, 决赛优化要求, 展示10分钟答辩3分钟]
+    conflict_fields: []
+  - chunk_id: N13
+    document_id: huike-2026-notice-20260605
+    track: PBL
+    page: 4
+    section: 七（一）奖项设置 PBL项目开发赛
+    facts: [PBL奖项比例与金额]
+    conflict_fields: []
+  - chunk_id: N14
+    document_id: huike-2026-notice-20260605
+    track: AI
+    page: 4
+    section: 七（二）奖项设置 AI智能体应用赛
+    facts: [AI奖项比例与金额]
+    conflict_fields: []
+  - chunk_id: N15
+    document_id: huike-2026-notice-20260605
+    track: PBL
+    page: 4
+    section: 八、评审标准总述 与（一）PBL项目开发赛评分标准
+    facts: [各赛道满分100分, PBL五个评分维度]
+    conflict_fields: []
+  - chunk_id: N16
+    document_id: huike-2026-notice-20260605
+    track: AI
+    page: 5
+    section: 八（二）AI智能体应用赛评分标准
+    facts: [AI四个评分维度各25分]
+    conflict_fields: []
+  - chunk_id: N17
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 5
+    section: 九、咨询方式
+    facts: [联系人姚老师, 联系人曾老师, 咨询地点]
+    conflict_fields: [联系人多寡]
+  - chunk_id: N18
+    document_id: huike-2026-notice-20260605
+    track: null
+    page: 6
+    section: 十、参赛方式与落款
+    facts: [两条赛道各两个二维码, 落款单位, 落款日期]
+    conflict_fields: []
+  - chunk_id: C01
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 海报抬头与赛事名称
+    facts: [赛事名称, 赛道名称, 开发平台]
+    conflict_fields: [平台名称写法]
+  - chunk_id: C02
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 参赛须知
+    facts: [参赛对象, 组队人数1至5人, 优先跨专业]
+    conflict_fields: []
+  - chunk_id: C03
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 赛程时间轴
+    facts: [培训实践2026-09-12至09-13, 初赛提交2026-09-24, 决赛材料提交2026-10-12, 答辩2026-10-14, 作品展2026-10下旬]
+    conflict_fields: [培训时间, 初赛提交截止, 决赛材料提交截止, 现场答辩日期, 优秀作品展示时间]
+  - chunk_id: C04
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 五大开发赛道
+    facts: [六个方向条目, 标题与条目数矛盾]
+    conflict_fields: [方向清单]
+  - chunk_id: C05
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 平台与福利
+    facts: [技术支持, 免费培训4大课程]
+    conflict_fields: [培训时间与期次]
+  - chunk_id: C06
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 作品提交材料
+    facts: [四项提交材料]
+    conflict_fields: []
+  - chunk_id: C07
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 赛事奖项
+    facts: [AI奖项比例与金额, 每队或每人口径]
+    conflict_fields: []
+  - chunk_id: C08
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 咨询方式
+    facts: [联系人姚老师, 咨询地点]
+    conflict_fields: [联系人多寡]
+  - chunk_id: C09
+    document_id: huike-2026-poster-202609
+    track: AI
+    page: 1
+    section: 报名方式与主办承办
+    facts: [扫码报名, 官方群, 主办单位, 承办单位]
+    conflict_fields: []

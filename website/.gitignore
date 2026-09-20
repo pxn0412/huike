@@ -1,0 +1,7 @@
+data/
+__pycache__/
+.env
+*.log
+node_modules/
+artifacts/
+test-data/

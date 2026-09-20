@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>慧科 · 让每一次参赛有据可循</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/polish.css"><link rel="stylesheet" href="/final.css"></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="#home"><span class="brand-icon">慧</span><span>慧科<small>你的竞赛资料助手</small></span></a>
+  <div class="nav-label">工作空间</div>
+  <nav><button data-action="home" class="nav active">⌂ <span>首页</span></button><button data-action="library" class="nav">▦ <span>比赛库</span></button><button data-action="upload" class="nav">＋ <span>添加比赛资料</span></button></nav>
+  <div class="sidebar-note"><span class="status-dot"></span> 本地体验版<p id="service-label">正在检查服务…</p><p>文件与资料保存在这台电脑。</p></div>
+  <button class="identity" data-action="identity"><span class="avatar">我</span><span id="identity-label">设置演示身份</span><span>⚙</span></button>
+</aside>
+<div class="workspace"><header><span id="breadcrumb">工作空间 / 首页</span><span class="local-badge">LOCAL PREVIEW</span></header><main id="main"></main></div>
+<aside id="source-panel" class="source-panel" hidden><div class="source-head"><div><small>原始资料</small><h3 id="source-title"></h3></div><button data-action="close-source" aria-label="关闭原文">×</button></div><a id="source-link" target="_blank" rel="noopener">在新窗口打开 PDF ↗</a><iframe id="source-frame" title="PDF 原文件预览"></iframe></aside>
+<dialog id="identity-dialog"><form id="identity-form"><p class="eyebrow">本地体验</p><h2>先告诉我们怎么称呼你</h2><p class="muted">用于资料的上传者标注。这是演示身份，不是正式账户登录或身份认证。</p><label>显示姓名<input name="name" required maxlength="40" placeholder="输入你的名字"></label><label>身份<select name="role"><option value="student">学生</option><option value="teacher">老师</option></select></label><div class="actions"><button type="button" data-action="close-identity" class="secondary">取消</button><button class="primary">保存身份</button></div></form></dialog>
+<div id="toast" role="status" hidden></div><script src="/app.js"></script>
+</body></html>

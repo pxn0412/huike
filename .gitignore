@@ -6,3 +6,9 @@ node_modules/
 __pycache__/
 .DS_Store
 Thumbs.db
+website/data/
+website/_eval/
+website/artifacts/
+website/test-data/
+*.sqlite3
+*.sqlite3-*

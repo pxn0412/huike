@@ -5,12 +5,31 @@
 <aside class="sidebar">
   <a class="brand" href="#home"><span class="brand-icon">慧</span><span>慧科<small>你的竞赛资料助手</small></span></a>
   <div class="nav-label">工作空间</div>
-  <nav><button data-action="home" class="nav active">⌂ <span>首页</span></button><button data-action="library" class="nav">▦ <span>比赛库</span></button><button data-action="upload" class="nav">＋ <span>添加比赛资料</span></button></nav>
-  <div class="sidebar-note"><span class="status-dot"></span> 本地体验版<p id="service-label">正在检查服务…</p><p>文件与资料保存在这台电脑。</p></div>
-  <button class="identity" data-action="identity"><span class="avatar">我</span><span id="identity-label">设置演示身份</span><span>⚙</span></button>
+  <nav><button data-action="home" class="nav active">⌂ <span>首页</span></button><button data-action="library" class="nav">▦ <span>比赛库</span></button><button data-action="upload" class="nav">＋ <span>添加比赛资料</span></button><button data-action="profile" class="nav">◍ <span>我的画像</span></button><button data-action="recruit" class="nav">♧ <span>队伍招募</span></button></nav>
+  <button class="identity" data-action="logout" title="退出登录"><span class="avatar">我</span><span id="identity-label">未登录</span><span>退出</span></button>
 </aside>
-<div class="workspace"><header><span id="breadcrumb">工作空间 / 首页</span><span class="local-badge">LOCAL PREVIEW</span></header><main id="main"></main></div>
+<div class="workspace"><header><span id="breadcrumb">工作空间 / 首页</span></header><main id="main"></main></div>
 <aside id="source-panel" class="source-panel" hidden><div class="source-head"><div><small>原始资料</small><h3 id="source-title"></h3></div><button data-action="close-source" aria-label="关闭原文">×</button></div><a id="source-link" target="_blank" rel="noopener">在新窗口打开 PDF ↗</a><iframe id="source-frame" title="PDF 原文件预览"></iframe></aside>
-<dialog id="identity-dialog"><form id="identity-form"><p class="eyebrow">本地体验</p><h2>先告诉我们怎么称呼你</h2><p class="muted">用于资料的上传者标注。这是演示身份，不是正式账户登录或身份认证。</p><label>显示姓名<input name="name" required maxlength="40" placeholder="输入你的名字"></label><label>身份<select name="role"><option value="student">学生</option><option value="teacher">老师</option></select></label><div class="actions"><button type="button" data-action="close-identity" class="secondary">取消</button><button class="primary">保存身份</button></div></form></dialog>
-<div id="toast" role="status" hidden></div><script src="/app.js"></script>
+<section id="login-page" hidden><div class="login-card">
+  <div class="login-brand"><span class="brand-icon">慧</span><span>慧科<small>你的竞赛资料助手</small></span></div>
+  <div class="auth-tabs"><button type="button" class="auth-tab active" id="tab-login" data-action="auth-login">登录</button><button type="button" class="auth-tab" id="tab-register" data-action="auth-register">注册</button></div>
+  <form id="login-form">
+    <label>邮箱或手机号<input name="account" required maxlength="80" autocomplete="username" placeholder="you@example.com 或 13800000000"></label>
+    <label>密码<input name="password" type="password" required maxlength="80" autocomplete="current-password" placeholder="你的密码"></label>
+    <p class="error" id="login-error" hidden></p>
+    <div class="actions"><button class="primary">登录</button></div>
+    <p class="help-line">还没有账号？<button type="button" class="text-btn" data-action="auth-register">去注册 →</button></p>
+  </form>
+  <form id="register-form" hidden>
+    <label>邮箱或手机号<input name="account" required maxlength="80" autocomplete="username" placeholder="you@example.com 或 13800000000"></label>
+    <label>显示名称<input name="name" required maxlength="40" placeholder="会显示在资料上传者和招募发布者上"></label>
+    <label>密码<input name="password" type="password" required minlength="6" maxlength="80" autocomplete="new-password" placeholder="至少 6 位"></label>
+    <label>确认密码<input name="confirm" type="password" required minlength="6" maxlength="80" autocomplete="new-password" placeholder="再输一次"></label>
+    <p class="error" id="register-error" hidden></p>
+    <div class="actions"><button class="primary">注册并进入</button></div>
+    <p class="help-line">已经有账号？<button type="button" class="text-btn" data-action="auth-login">去登录 →</button></p>
+  </form>
+  <p class="help-line">账号记着你的竞赛画像、招募和上传的资料；换台电脑登录也能看到自己的东西。</p>
+</div></section>
+<div id="toast" role="status" hidden></div><script src="/app.js"></script><script src="/demo.js"></script>
 </body></html>

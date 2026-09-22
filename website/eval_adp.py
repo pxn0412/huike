@@ -32,6 +32,9 @@ DEFAULT_ENDPOINT = 'https://wss.lke.cloud.tencent.com/adp/v2/chat'
 RAW_DIR = ROOT / '_eval'
 ROW = re.compile(r'^\s*\|\s*(\d{1,2})\s*\|\s*([^|]+?)\s*\|')
 TEXT_EVENTS = ('text.delta', 'content.add', 'message.delta')
+# 平台不同版本对同一概念的字段名不一样：按可能性从高到低取第一个非空值。
+DOC_ID_KEYS = ('DocBizId', 'DocId', 'DocumentId', 'Id')
+QUOTE_KEYS = ('Content', 'QuoteText', 'Text', 'Quote', 'SegmentText')
 
 
 def settings():
@@ -43,7 +46,7 @@ def settings():
             if line and not line.startswith('#') and '=' in line:
                 key, value = line.split('=', 1)
                 values[key.strip()] = value.strip().strip('"').strip("'")
-    names = ('ADP_APP_KEY', 'ADP_CHAT_URL')
+    names = ('ADP_APP_KEY', 'ADP_CHAT_URL', 'ADP_PROFILE_APP_KEY', 'ADP_PROFILE_CHAT_URL')
     return {name: os.environ.get(name, values.get(name, '')) for name in names}
 
 
@@ -62,9 +65,14 @@ def load_questions(path):
     return questions
 
 
-def call(endpoint, app_key, question, timeout=120):
-    """一次问答。返回 (解析结果, 原始事件文本)。"""
-    payload = {'RequestId': uuid.uuid4().hex, 'ConversationId': uuid.uuid4().hex,
+def call(endpoint, app_key, question, conversation_id=None, timeout=120):
+    """一次问答。返回 (解析结果, 原始事件文本)。
+
+    `conversation_id` 决定这是新会话还是追问：传同一个 ID 就是接着上文问。
+    评测脚本每题都不传，等于每题一个新会话。
+    """
+    payload = {'RequestId': uuid.uuid4().hex,
+               'ConversationId': str(conversation_id or uuid.uuid4().hex),
                'AppKey': app_key, 'UserId': 'eval-runner', 'UserName': '评测脚本',
                'Contents': [{'Type': 'text', 'Text': question}], 'Incremental': True,
                'Stream': 'enable'}
@@ -82,7 +90,12 @@ def call(endpoint, app_key, question, timeout=120):
 
 
 def parse_events(raw):
-    """按 SSE 事件名归集内容：正文、角标位置、引用列表、错误。"""
+    """按 SSE 事件名归集内容：正文、平台角标、引用列表、错误。
+
+    角标用平台给的 `quote_info.added`（Index + Position）**原样保留**，
+    既不往回答正文里插 `[n]`，也不从正文里正则找 `[n]` —— 正文里天然出现的
+    “提交材料包括：[1] PPT”不是引用，猜不得。
+    """
     answer, marks, refs, errors, event = [], [], [], [], ''
     for line in raw.splitlines():
         if line.startswith('event:'):
@@ -112,44 +125,79 @@ def parse_events(raw):
         elif event == 'quote_info.added':
             info = payload.get('QuoteInfo') or {}
             if isinstance(info, dict) and info.get('Position') is not None:
-                marks.append((int(info['Position']), int(info.get('Index') or 0)))
+                marks.append({'index': int(info.get('Index') or 0),
+                              'position': int(info['Position'])})
         elif event.startswith('reference.added'):
             reference = payload.get('Reference') or {}
             document = reference.get('DocRefer') or {}
             name = document.get('DocName') or reference.get('Name') or ''
             if name:
-                refs.append({'index': reference.get('Index') or len(refs) + 1,
-                             'name': name, 'url': document.get('Url') or ''})
+                refs.append({'index': reference.get('Index') or len(refs) + 1, 'name': name,
+                             'url': document.get('Url') or '',
+                             'doc_id': _reference_field(reference, document, DOC_ID_KEYS),
+                             'quote_text': _reference_field(reference, document, QUOTE_KEYS)})
         elif event == 'error' or payload.get('Code'):
             message = payload.get('Message') or payload.get('Code')
             if message:
                 errors.append(str(message))
-    text = ''.join(answer).strip()
-    for position, index in sorted(marks, reverse=True):  # 从后往前插角标，位置才不会被推移
-        if 0 <= position <= len(text):
-            text = f'{text[:position]}[{index}]{text[position:]}'
-    return {'answer': text or '（未解析出文本，请看 _eval 里的原始返回）',
-            'quotes': refs, 'errors': errors}
+    return {'answer': ''.join(answer).strip(), 'quotes': refs, 'marks': marks,
+            'used_reference_indices': sorted({mark['index'] for mark in marks if mark['index']}),
+            'errors': errors}
+
+
+def _first(mapping, keys):
+    """按顺序取第一个非空字符串：不同接口版本字段名不一样，按可能性依次试。"""
+    for key in keys:
+        value = mapping.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ''
+
+
+def _reference_field(reference, document, keys):
+    return _first(document, keys) or _first(reference, keys)
+
+
+def display_answer(answer):
+    """评测报告里怎么显示回答：空的就写“未解析到正文”，不编一段像回答的话。"""
+    return answer.strip() if answer and answer.strip() else '未解析到正文'
+
+
+def quote_summary(result):
+    """引用列：标出哪些角标是回答真正用到的（✓），哪些只是被检索到。"""
+    used = set(result.get('used_reference_indices') or [])
+    return '；'.join(f"[{item['index']}] {item['name']}"
+                     f"{'✓' if item['index'] in used else '（检索到未使用）'}"
+                     for item in (result.get('quotes') or [])[:4])
 
 
 def write_result(out_dir, rows, endpoint):
-    """把结果写成 Markdown 表格 + 引用明细。"""
+    """把结果写成 Markdown 表格 + 引用明细。
+
+    rows 每项是 (题号, 问题, 解析结果, 耗时)；解析结果就是 parse_events 的返回。
+    """
     stamp = datetime.now().strftime('%Y-%m-%d-%H%M')
     target = Path(out_dir) / f'2026-09-19-评测结果-{stamp}.md'
     lines = [f'# 评测结果（{stamp}）', '',
              f'- 接口：{endpoint}', f'- 题数：{len(rows)}', '',
-             '> 原始返回在 `website/_eval/raw-NNN.txt`；回答由脚本自动摘录，正文里的 `[n]` 是平台角标。', '',
-             '| 题号 | 问题 | 回答 | 引用 | 耗时(s) |', '| --- | --- | --- | --- | --- |']
-    for number, question, answer, quotes, elapsed, _ in rows:
-        clean = answer.replace('\n', ' ').replace('|', '｜')
-        lines.append(f'| {number} | {question} | {clean} | {quotes} | {elapsed:.1f} |')
+             '> 原始返回在 `website/_eval/raw-NNN.txt`。角标是平台给的（`quote_info.added`），'
+             '不再往正文里插 `[n]`；✓ 表示回答实际用到了这条引用。', '',
+             '| 题号 | 问题 | 回答 | 引用（✓=回答实际使用） | 耗时(s) |', '| --- | --- | --- | --- | --- |']
+    for number, question, result, elapsed in rows:
+        clean = display_answer(result.get('answer')).replace('\n', ' ').replace('|', '｜')
+        lines.append(f'| {number} | {question} | {clean} | {quote_summary(result)} | {elapsed:.1f} |')
     lines += ['', '## 引用明细', '']
-    for number, _, _, _, _, refs in rows:
-        if not refs:
+    for number, _, result, _ in rows:
+        quotes = result.get('quotes') or []
+        if not quotes:
             lines.append(f'- 第 {number} 题：无引用')
             continue
-        for item in refs:
-            lines.append(f"- 第 {number} 题 [{item['index']}] {item['name']}（{item['url']}）")
+        used = set(result.get('used_reference_indices') or [])
+        used_text = '、'.join(str(index) for index in sorted(used)) or '无（回答未标注可核对引用）'
+        lines.append(f'- 第 {number} 题：回答使用角标 {used_text}')
+        for item in quotes:
+            mark = '（回答依据）' if item['index'] in used else '（检索到但回答未使用）'
+            lines.append(f"  - [{item['index']}] {item['name']}{mark}（{item['url']}）")
     target.write_text('\n'.join(lines) + '\n', encoding='utf-8')
     return target
 
@@ -184,9 +232,7 @@ def main():
             if not raw_path.exists():
                 continue
             result = parse_events(raw_path.read_text(encoding='utf-8'))
-            rows.append((number, question, result['answer'],
-                         '；'.join(f"[{item['index']}] {item['name']}"
-                                   for item in result['quotes'][:4]), 0.0, result['quotes']))
+            rows.append((number, question, result, 0.0))
         target = write_result(args.out, rows, '离线重解析（用 _eval 里的原始返回）')
         print(f'重新解析 {len(rows)} 题：{target}')
         return 0
@@ -212,17 +258,20 @@ def main():
             result, raw = call(endpoint, app_key, question)
         except ValueError as exc:
             print(f'{number:>2}. 失败：{exc}')
-            rows.append((number, question, f'调用失败：{exc}', '', 0.0, []))
+            rows.append((number, question, {'answer': f'调用失败：{exc}', 'quotes': [],
+                                            'used_reference_indices': [], 'errors': []}, 0.0))
             continue
         (RAW_DIR / f'raw-{number:03d}.txt').write_text(raw, encoding='utf-8')
         elapsed = time.time() - started
         note = f"，引用 {len(result['quotes'])} 条" if result['quotes'] else ''
+        if result['used_reference_indices']:
+            note += f"，回答用到角标 {result['used_reference_indices']}"
+        if not result['answer'].strip():
+            note += '，未解析到正文（不要当成“没有问题”）'
         if result['errors']:
             note += '，错误：' + '；'.join(result['errors'])
         print(f'{number:>2}. 完成（{elapsed:.1f}s，{len(result["answer"])} 字）{note}')
-        rows.append((number, question, result['answer'],
-                     '；'.join(f"[{item['index']}] {item['name']}" for item in result['quotes'][:4]),
-                     elapsed, result['quotes']))
+        rows.append((number, question, result, elapsed))
 
     target = write_result(args.out, rows, endpoint)
     print(f'结果：{target}')

@@ -1,0 +1,1290 @@
+{
+  "情况1 过滤 huike-2026（只带该标签）": {
+    "question": "报名要提交什么材料？",
+    "filter": "huike-2026",
+    "only_selected": true,
+    "ok": true,
+    "response": {
+      "RequestId": "3ecd6262-682f-4a62-8ced-9ebfca92f4aa",
+      "KnowledgeList": [
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283421123938149",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-通知2026-06-05\n文档片段：\n## 块 N11 ｜六、报名备案与初赛作品提交要求（第 3 页，两赛道通用，材料清单分赛道）\n\n（一）报名备案\n\n参赛团队按要求填写《2026 年“慧科杯”AI 创新大赛报名表》，加入官方赛事通知群完成报名备案，逾期不予受理。\n\n（二）初赛作品提交\n\n各参赛团队需在规定时间内提交全套完整、规范的参赛材料，材料缺失、格式不符、逾期提交视为自动弃赛，具体要求如下：\n\n- PBL 项目开发赛：项目设计 PPT、全套项目开发文档（需求分析、设计方案、代码/图纸、测试报告等）、项目完整功能演示视频（5-10 分钟）\n- AI 智能体应用赛：项目方案 PPT、10 分钟以内智能体功能演示视频、智能体在线访问链接及二维码、项目开发说明文档\n",
+            "DocId": "2101283379907894080",
+            "DocName": "慧科杯-知识库上传-通知2026-06-05.md",
+            "Title": "慧科杯-知识库上传-通知2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6868305,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291691",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N12 ｜六、赛事流程及材料要求 · （一）报名备案（第 3 页，两赛道通用）\n\n六、赛事流程及材料要求 · （一）报名备案参赛团队按要求填写《 2026 年 \" 慧科杯 \" AI 创新大赛报名表》，加入官方赛事通矩群完成报名备案，逾期不予受理。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6696017,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283421123938129",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-通知2026-06-05\n文档片段：\n## 块 N06 ｜四、大赛时间安排（二）AI 智能体应用赛时间安排（第 2 页，仅 AI 智能体应用赛）\n\n（二）AI 智能体应用赛\n\n- 大赛报名：即日起至 2026 年 6 月 30 日 18:00（逾期不再接受报名）\n- 专项培训：2026 年 7 月中旬—8 月上旬，开展智能体专项技术培训\n- 初赛提交：2026 年 8 月 22 日 18:00 前完成作品及相关材料提交\n- 初赛评审：2026 年 8 月 23 日—8 月 31 日，完成线上评审，并公示复赛晋级名单\n- 决赛提交：2026 年 9 月 12 日 18:00 前完成作品及相关材料提交\n- 现场决赛答辩：2026 年 9 月 16 日（地点：信息学院 B2-324）\n\n\n2026 年 9 月下旬，通过学院官网、官方公众号对优秀参赛作品进行集中展示。",
+            "DocId": "2101283379907894080",
+            "DocName": "慧科杯-知识库上传-通知2026-06-05.md",
+            "Title": "慧科杯-知识库上传-通知2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6089531,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291667",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N06 ｜（二） AI 智能体应用赛（第 2 页，仅 AI 智能体应用赛）\n\n（二） AI 智能体应用赛1 ，大赛报名．即日起至 2026 年 6 月 30 日 1 8 ℃ 0 （逾期不再接受报名）2 ．专项培训： 2026 年 7 月中旬一 8 月上旬，开展智能体专项技术培训。3 ，初赛提交 2026 年 8 月 22 日 18 ： 00 前完成作品及相关材料提交4 ．初赛评审 2026 年 8 月 23 日一 8 月 31 日，完成线上评审，并公示复赛晋级名单5 ．决赛提交： 2026 年 9 月 1 2 日 1 8 ： 00 前完成作品及相关材料提交6 ，现场决赛答辩． 2026 年 9 月 1 6 日（地点：信息学院 B2 一 324 ）2026 年 9 月下旬，通过学院官网、官方公众号对优秀参赛作品进行集中展示。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.59042406,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283411732421131",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-海报2026-09\n文档片段：\n## 块 C09 ｜报名方式与主办承办（海报，仅 AI 智能体应用赛）\n\n扫码填写报名表，完成赛事报名备案；扫码进官方群，获取赛事通知、答疑。\n\n主办：浙江广厦建设职业技术大学\n\n承办：信息学院、慧科未来、慧科软件工程学院、人工智能产业学院、星芒工作室\n\n说明：报名与群二维码为图片，文本层不含可检索内容，需查看原始海报。",
+            "DocId": "2101283372262809408",
+            "DocName": "慧科杯-知识库上传-海报2026-09.md",
+            "Title": "慧科杯-知识库上传-海报2026-09"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6546792,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283421123938125",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-通知2026-06-05\n文档片段：\n## 块 N05 ｜四、大赛时间安排（一）PBL 项目开发赛时间安排（第 2 页，仅 PBL 项目开发赛）\n\n（一）PBL 项目开发赛\n\n- 大赛报名：即日起至 2026 年 6 月 20 日 18:00（逾期不再接受报名）\n- 作品提交：2026 年 6 月 24 日 18:00 前完成作品及相关材料提交\n- 评审及晋级：2026 年 6 月 24 日—6 月 28 日，完成线上评审并公示决赛名单\n- 现场决赛答辩：2026 年 7 月 1 日下午 2:00-5:00（地点：信息学院 B2-324）\n",
+            "DocId": "2101283379907894080",
+            "DocName": "慧科杯-知识库上传-通知2026-06-05.md",
+            "Title": "慧科杯-知识库上传-通知2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.599051,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283421128132422",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-通知2026-06-05\n文档片段：\n## 块 N18 ｜十、参赛方式（报名二维码）与落款（第 5—6 页，两赛道通用）\n\n十、参赛方式\n\n（一）PBL 项目开发赛：（扫描二维码填写报名信息）（扫描群二维码进入参赛群）\n\n（二）AI 智能体应用赛：（扫描二维码填写报名信息）（扫描群二维码进入参赛群）\n\n说明：两条赛道的报名二维码与参赛群二维码均为图片，文本层不含可检索内容，需查看原始通知文件。\n\n望全体相关专业学生积极报名参赛，踊跃投身科技创新实践，以赛促学、锤炼本领！\n\n落款：浙江广厦建设职业技术大学信息学院、深圳慧科未来教育科技有限公司\n\n2026 年 6 月 5 日",
+            "DocId": "2101283379907894080",
+            "DocName": "慧科杯-知识库上传-通知2026-06-05.md",
+            "Title": "慧科杯-知识库上传-通知2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.64003265,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291663",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N05 ｜四、大赛时间安排 · ） PBLI 页目开发赛（第 2 页，仅 PBL 项目开发赛）\n\n四、大赛时间安排 · ） PBLI 页目开发赛为保障赛事有序开展，本次大赛分阶段推进，具体时间安扫洳下：1 ．大报名即日起至 2026 年 6 月 20 日 1 8 ℃ 0 （逾期不再接受报名）2 ．作品提交． 2026 年 6 月 24 日 18 ： 00 前完成亻乍品及相关材料提交3 ．评审及晋级 2026 年 6 月 24 日一 6 月 28 日，完成线上评审并公示决赛名单4 ，现场决赛答辩． 2026 年 7 月 1 日下午 2 ： 00 巧： 00 （地点，信息学院 B2 一 324 ）",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.5843036,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        }
+      ],
+      "TokenUsageList": [
+        {
+          "ModelName": "Youtu/youtu-embedding",
+          "PromptTokens": 11,
+          "CompletionTokens": 0,
+          "TotalTokens": 11
+        }
+      ]
+    },
+    "recalled": [
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ]
+    ]
+  },
+  "情况2 过滤 mobile-ai-literacy-2026": {
+    "question": "报名要提交什么材料？",
+    "filter": "mobile-ai-literacy-2026",
+    "only_selected": true,
+    "ok": true,
+    "response": {
+      "RequestId": "5a71622a-ed50-47a5-8f4f-89df8bcaa1b5",
+      "KnowledgeList": [
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852246",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N07 ｜四、大赛时间安排 · （一）报名阶段（第 3—4 页，两赛道通用）\n\n四、大赛时间安排 · （一）报名阶段1.学校报名（本科和研究生组即日起至 6 月 30 日；高职高专组即日起至 7 月 7 日）各参赛高校报名时请提交《中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛（xx 赛道）学校报名表》盖章扫描件（附件 1），本科和研究生组高校发送至邮箱：xuyibei@nbu.edu.cn；高职高专组高校发送至：522252048@qq.com，发送报名表后，平台方将在一个工作日内与报名表上的联络老师联系，并为报名高校开通参赛权限。同时请各高校联络老师及时加入大赛联络钉钉群（此群不面向学生，校赛环节建议各校自行创建交流群）。本科及研究生组联络老师钉钉群号：165935028318高职高专组联络老师钉钉群号：1729600260552.学生报名本科和研究生组报名时间为2026年7月3日至9月17日；高职高专组报名时间为 2026 年 7 月 9 日至 9 月 24 日。本科高校：各参赛本科高校组织本校参赛学生在大赛平台(链接：https://csc.xxsuyang.com/)完成学生注册报名。高职高专院校：各参赛高职高专院校组织本校参赛学生在大赛平台(链接：https://cscgz.zhixinst.com/)完成学生注册报名。",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6156323,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852282",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N16 ｜八、其他（第 7 页，两赛道通用）\n\n八、其他1.大赛相关培训、比赛时间、比赛要求等具体事宜另行通知。2.其他未尽事宜另行通知。浙江省高等学校图书情报工作指导委员会2026 年 6 月 22 日附件 1：中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛（xx 赛道）学校报名表附件 2：2026 年大学生“AI+信息素养”大赛参赛学生报名流程手册附件 3：2026 年大学生“AI+信息素养”大赛参赛学校管理员后台操作手册",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.5842817,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852254",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N09 ｜（三）学校选拔赛（第 4—5 页，两赛道通用）\n\n（三）学校选拔赛1.学生个人参赛：本科和研究生组时间为9月19日-21日；高职高专组时间为 9 月 22 日-24 日。本科、研究生赛道：参赛学生在指定时间内登录大赛网络平台(链接：https://csc.xxsuyang.com/)，通过竞赛系统随机抽取题目并在线完成答题。高职高专赛道：参赛学生在指定时间内登录大赛网络平台(链接：https://cscgz.zhixinst.com/)，通过竞赛系统随机抽取题目并在线完成答题。2.省赛队伍组队和报名：本科及研究生组（9 月 22 日-10月 11 日）；高职高专组（9 月 28 日-10 月 11 日）（1）晋级名额分配：省赛执行委员会根据各高校参与校赛的学生数量与成绩，核定并公布各高校晋级省赛的队伍名额。（2）队伍组建：各高校根据所获名额，自行推荐和组织晋级团队（每队 3 人），并完成省赛报名。",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.5540204,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852262",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N11 ｜（五）省赛（第 5—6 页，两赛道通用）\n\n（五）省赛省赛时间为 10 月 17 日—11 月 2 日，以团队形式（3 人）参赛，分为淘汰赛和决赛两个阶段。1.淘汰赛（10 月 17 日—18 日）（1）比赛方式：采用线上限时闯关答题形式，包含“个人对抗”和“团队对抗”两个环节。团队总成绩由两环节得分相加构成。（2）晋级规则：各团队总成绩按从高到低排序，排名靠前的队伍晋级省赛决赛。2.决赛（作品提交截止时间：11 月 2 日 22:00）（1）比赛方式：提交一份开放主题作品及配套的成果展示材料。作品将由专家进行线上匿名评审。线下决赛采取“极速对抗”和“现场答辩”相结合的方式。（2）总成绩计算：省赛决赛总成绩=极速对抗（30%）+作品得分(30%)+现场答辩（40%）。（3）奖项评定：根据省赛决赛总成绩从高到低排序，评选出省赛一等奖、二等奖、三等奖。",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.5207139,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188794657920",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n# 关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江赛区比赛的通知\n\n- 比赛：中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江赛区比赛（第二届）\n- 资料类型：比赛资料\n- 来源文件：关于举办中国移动杯第二届浙江省大学生人工智能竞赛之AI+信息素养专项赛暨2026年大学生AI+信息素养大赛浙江赛区比赛的通知(1).pdf\n- 发布时间：2026-06-22\n- 适用赛道：本科生、研究生、高职高专\n",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.5657406,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852258",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N10 ｜（四）省赛缴费（截止日：2026 年 10 月 12 日）（第 5 页，两赛道通用）\n\n（四）省赛缴费（截止日：2026 年 10 月 12 日）大赛参赛费为 800 元/队。参赛费由参赛高校统一缴纳，不得以任何形式向学生收费。转账时务必附言：“人工智能竞赛”。请各参赛学校于截止日期 2026 年 10 月 12 日前转账至宁波大学账户，账户名称：宁波大学，开户银行：工行宁波江北支行，账号：3901130009000002464。",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.55923283,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852270",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N13 ｜五、参赛资格（第 6 页，两赛道通用）\n\n五、参赛资格1.参赛院校为教育部批准成立的高等院校，参赛学生应在竞赛期间为全日制在籍在校生。2.省赛每支队伍指导教师不得超过 2 人，且不得变更。",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.54219186,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101547188798852278",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22\n文档片段：\n## 块 N15 ｜七、联系方式（第 6—7 页，两赛道通用）\n\n七、联系方式 本科生、研究生赛道：宁波大学图书馆（接上页） 本科生、研究生赛道：宁波大学图书馆联系人：徐老师，电话：13858220466王老师，电话：15958270552 高职高专赛道：宁波职业技术大学图书馆联系人：周燕，电话：13757425047 北京智信数图科技有限公司联系人：邱小虎，电话：17507127441浙江省大学生科技竞赛监督邮箱：zj_gjc@126.com。",
+            "DocId": "2101547127154050880",
+            "DocName": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22.md",
+            "Title": "关于举办中国移动杯·第二届浙江省大学生人工智能竞赛之“AI+信息素养”专项赛暨2026年大学生“AI+信息素养”大赛浙江-2026-06-22"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.53755164,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2
+          ]
+        }
+      ],
+      "TokenUsageList": [
+        {
+          "ModelName": "Youtu/youtu-embedding",
+          "PromptTokens": 11,
+          "CompletionTokens": 0,
+          "TotalTokens": 11
+        }
+      ]
+    },
+    "recalled": [
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ]
+    ]
+  },
+  "情况3 过滤不存在的标识": {
+    "question": "报名要提交什么材料？",
+    "filter": "not-a-competition",
+    "only_selected": true,
+    "ok": true,
+    "response": {
+      "RequestId": "052e4bb0-90e6-47b9-aa9c-a25f23ca09a5",
+      "KnowledgeList": [],
+      "TokenUsageList": []
+    },
+    "recalled": []
+  },
+  "情况4 过滤 huike-2026 + 名称故意指向计设大赛": {
+    "question": "计算机设计大赛的参赛要求是什么？",
+    "filter": "huike-2026",
+    "only_selected": true,
+    "ok": true,
+    "response": {
+      "RequestId": "62908fcd-d576-4c2c-acf4-efb6bbc1f9eb",
+      "KnowledgeList": [
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291683",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N10 ｜赛道二： AI 智能体应用赛（第 2—3 页，仅 AI 智能体应用赛）\n\n赛道二： AI 智能体应用赛参赛作品须依托腾讯云智能体开发平台、腾讯混元大模型自主研发设计，聚焦真实校园及行业应用场景，具体分为五大方向，\n\n- 教学赋能类：智能备课助手、个陸化学习推送、智能作业批改辅导工具等；2 ．科研增效类：学术文献智能检索、实验数据智能分析、科研资料整理助手等；3 ，校园智慧管理类：智能课表提醒、校园场地预约、校园智能导航等服务智能体，4 ．校园生活服务类．校园餐饮智能推荐、宿舍便民服务、校园活动智能匹配助手等；5 ，行业创新定制类：结合计算机、建筑等专业特色，面向各类行业真实需求研发的智能体应用。所有参赛作品需立足真实场景、解决实际问题，优先选用校园真实业务需求开展项目研发，确保作品具备实用性与落地生\n",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.63611555,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291695",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N13 ｜（二）初赛作品提交（第 3 页，两赛道通用）\n\n（二）初赛作品提交各参赛团队需在规定时间内提交全套完整、规范的参赛材料，材料缺失、格式不符、逾期提交视为自动弃赛，具体要求如下1 ． PBL 项目开发赛：项目设计 PPT 、全套项目开发文档（需求分析、设计方案、代码 / 图纸、测试报告等）、项目完整功能演示视频（ 5 一 10 分钟），2 ． A | 智能体应用赛：项目方案 PPT 、 1 0 分钟以内智能体功能演示视频、智能体在线访问链接及二维码、项目开发说明文档。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.67824817,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291671",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N07 ｜五、大赛主题及参赛内容 · （一）大赛主题（第 2 页，两赛道通用）\n\n五、大赛主题及参赛内容 · （一）大赛主题智汇 PBL 实训，创启 AI 新生态",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.613776,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283421123938149",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-通知2026-06-05\n文档片段：\n## 块 N11 ｜六、报名备案与初赛作品提交要求（第 3 页，两赛道通用，材料清单分赛道）\n\n（一）报名备案\n\n参赛团队按要求填写《2026 年“慧科杯”AI 创新大赛报名表》，加入官方赛事通知群完成报名备案，逾期不予受理。\n\n（二）初赛作品提交\n\n各参赛团队需在规定时间内提交全套完整、规范的参赛材料，材料缺失、格式不符、逾期提交视为自动弃赛，具体要求如下：\n\n- PBL 项目开发赛：项目设计 PPT、全套项目开发文档（需求分析、设计方案、代码/图纸、测试报告等）、项目完整功能演示视频（5-10 分钟）\n- AI 智能体应用赛：项目方案 PPT、10 分钟以内智能体功能演示视频、智能体在线访问链接及二维码、项目开发说明文档\n",
+            "DocId": "2101283379907894080",
+            "DocName": "慧科杯-知识库上传-通知2026-06-05.md",
+            "Title": "慧科杯-知识库上传-通知2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6724584,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291691",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N12 ｜六、赛事流程及材料要求 · （一）报名备案（第 3 页，两赛道通用）\n\n六、赛事流程及材料要求 · （一）报名备案参赛团队按要求填写《 2026 年 \" 慧科杯 \" AI 创新大赛报名表》，加入官方赛事通矩群完成报名备案，逾期不予受理。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6514828,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291659",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N04 ｜、参赛对象（第 1—2 页，两赛道通用）\n\n、参赛对象浙江广厦建设职业技术大学全体在校生。大赛鼓励跨专业、跨年级自由组队参赛，每支参赛队伍人数为 1 巧人。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.63598156,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090049485959",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N19 ｜八、评审标准 · （一） PB 凵页目开发赛（第 4—5 页，仅 PBL 项目开发赛）\n\n八、评审标准 · （一） PB 凵页目开发赛本次大赛各赛道满分均为 100 分，评分标准如下：\n\n- 技术创新性（ 25 分）：作品技术思路、实现方式具备创新亮点，区别于常规基础实训作品；2 ．项目完整性（ 20 分）：项目功能完整、运行稳定，无明显漏洞，完成预设实训目标，3 ，应用价值（ 20 分）：贴合真实场景，具备实际使用价值、可落地、可推广；4 ．现场答辩表现（ 20 分）：路演逻辑清晰、答辩应答准确、团队展示状态良好；5 ，文档规范性（ 15 分）全套文档齐全、格式规范、内容详实、逻辑門堇。\n",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.670084,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291679",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N09 ｜赛道一： PBL 项目开发赛（第 2 页，仅 PBL 项目开发赛）\n\n赛道一： PBL 项目开发赛面向学院各类课程 PBL 实训成果，不限制人工智能技术开发方向。参赛作品可为应用软件开发、 / 」哐序开发、嵌入式开发、机器视觉、物联网监测系统等各类实训项目，包含智能井盖识别、水下垃圾检测、校园智能监控等各类落地性项目，要求作品贴合实际场景、功能完整、具备实践价值。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.63729525,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        }
+      ],
+      "TokenUsageList": [
+        {
+          "ModelName": "Youtu/youtu-embedding",
+          "PromptTokens": 13,
+          "CompletionTokens": 0,
+          "TotalTokens": 13
+        }
+      ]
+    },
+    "recalled": [
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ]
+    ]
+  },
+  "情况5 同一问题，但不选“仅检索选中标签”（对照）": {
+    "question": "计算机设计大赛的参赛要求是什么？",
+    "filter": "huike-2026",
+    "only_selected": false,
+    "ok": true,
+    "response": {
+      "RequestId": "9984828f-8940-441e-8aad-95a9bdfbfab9",
+      "KnowledgeList": [
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291683",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N10 ｜赛道二： AI 智能体应用赛（第 2—3 页，仅 AI 智能体应用赛）\n\n赛道二： AI 智能体应用赛参赛作品须依托腾讯云智能体开发平台、腾讯混元大模型自主研发设计，聚焦真实校园及行业应用场景，具体分为五大方向，\n\n- 教学赋能类：智能备课助手、个陸化学习推送、智能作业批改辅导工具等；2 ．科研增效类：学术文献智能检索、实验数据智能分析、科研资料整理助手等；3 ，校园智慧管理类：智能课表提醒、校园场地预约、校园智能导航等服务智能体，4 ．校园生活服务类．校园餐饮智能推荐、宿舍便民服务、校园活动智能匹配助手等；5 ，行业创新定制类：结合计算机、建筑等专业特色，面向各类行业真实需求研发的智能体应用。所有参赛作品需立足真实场景、解决实际问题，优先选用校园真实业务需求开展项目研发，确保作品具备实用性与落地生\n",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.63611555,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291695",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N13 ｜（二）初赛作品提交（第 3 页，两赛道通用）\n\n（二）初赛作品提交各参赛团队需在规定时间内提交全套完整、规范的参赛材料，材料缺失、格式不符、逾期提交视为自动弃赛，具体要求如下1 ． PBL 项目开发赛：项目设计 PPT 、全套项目开发文档（需求分析、设计方案、代码 / 图纸、测试报告等）、项目完整功能演示视频（ 5 一 10 分钟），2 ． A | 智能体应用赛：项目方案 PPT 、 1 0 分钟以内智能体功能演示视频、智能体在线访问链接及二维码、项目开发说明文档。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.67824817,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291671",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N07 ｜五、大赛主题及参赛内容 · （一）大赛主题（第 2 页，两赛道通用）\n\n五、大赛主题及参赛内容 · （一）大赛主题智汇 PBL 实训，创启 AI 新生态",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.613776,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291691",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N12 ｜六、赛事流程及材料要求 · （一）报名备案（第 3 页，两赛道通用）\n\n六、赛事流程及材料要求 · （一）报名备案参赛团队按要求填写《 2026 年 \" 慧科杯 \" AI 创新大赛报名表》，加入官方赛事通矩群完成报名备案，逾期不予受理。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6514828,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101283421123938149",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：慧科杯-知识库上传-通知2026-06-05\n文档片段：\n## 块 N11 ｜六、报名备案与初赛作品提交要求（第 3 页，两赛道通用，材料清单分赛道）\n\n（一）报名备案\n\n参赛团队按要求填写《2026 年“慧科杯”AI 创新大赛报名表》，加入官方赛事通知群完成报名备案，逾期不予受理。\n\n（二）初赛作品提交\n\n各参赛团队需在规定时间内提交全套完整、规范的参赛材料，材料缺失、格式不符、逾期提交视为自动弃赛，具体要求如下：\n\n- PBL 项目开发赛：项目设计 PPT、全套项目开发文档（需求分析、设计方案、代码/图纸、测试报告等）、项目完整功能演示视频（5-10 分钟）\n- AI 智能体应用赛：项目方案 PPT、10 分钟以内智能体功能演示视频、智能体在线访问链接及二维码、项目开发说明文档\n",
+            "DocId": "2101283379907894080",
+            "DocName": "慧科杯-知识库上传-通知2026-06-05.md",
+            "Title": "慧科杯-知识库上传-通知2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.6724584,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291659",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N04 ｜、参赛对象（第 1—2 页，两赛道通用）\n\n、参赛对象浙江广厦建设职业技术大学全体在校生。大赛鼓励跨专业、跨年级自由组队参赛，每支参赛队伍人数为 1 巧人。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.63598156,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090049485959",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N19 ｜八、评审标准 · （一） PB 凵页目开发赛（第 4—5 页，仅 PBL 项目开发赛）\n\n八、评审标准 · （一） PB 凵页目开发赛本次大赛各赛道满分均为 100 分，评分标准如下：\n\n- 技术创新性（ 25 分）：作品技术思路、实现方式具备创新亮点，区别于常规基础实训作品；2 ．项目完整性（ 20 分）：项目功能完整、运行稳定，无明显漏洞，完成预设实训目标，3 ，应用价值（ 20 分）：贴合真实场景，具备实际使用价值、可落地、可推广；4 ．现场答辩表现（ 20 分）：路演逻辑清晰、答辩应答准确、团队展示状态良好；5 ，文档规范性（ 15 分）全套文档齐全、格式规范、内容详实、逻辑門堇。\n",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.670084,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        },
+        {
+          "KnowledgeType": 2,
+          "SnippetProfile": {
+            "KnowledgeId": "2101543090045291679",
+            "KbId": "2100783876846755776",
+            "Question": "",
+            "Content": "文档名：关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05\n文档片段：\n## 块 N09 ｜赛道一： PBL 项目开发赛（第 2 页，仅 PBL 项目开发赛）\n\n赛道一： PBL 项目开发赛面向学院各类课程 PBL 实训成果，不限制人工智能技术开发方向。参赛作品可为应用软件开发、 / 」哐序开发、嵌入式开发、机器视觉、物联网监测系统等各类实训项目，包含智能井盖识别、水下垃圾检测、校园智能监控等各类落地性项目，要求作品贴合实际场景、功能完整、具备实践价值。",
+            "DocId": "2101543054516739904",
+            "DocName": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05.md",
+            "Title": "关于举办浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛的通知-2026-06-05"
+          },
+          "SourceInfo": {
+            "KbName": "竞赛资料问答助手",
+            "IsShared": false,
+            "IsBigData": false
+          },
+          "Confidence": 0.63729525,
+          "ResultType": 0,
+          "SimilarQuestionExtra": {
+            "SimilarQuestionId": "0",
+            "Content": ""
+          },
+          "ResultPayload": {
+            "ImageUrlList": [],
+            "GraphData": "",
+            "SheetInfo": ""
+          },
+          "RecallTypeList": [
+            2,
+            1,
+            7
+          ]
+        }
+      ],
+      "TokenUsageList": [
+        {
+          "ModelName": "Youtu/youtu-embedding",
+          "PromptTokens": 13,
+          "CompletionTokens": 0,
+          "TotalTokens": 13
+        }
+      ]
+    },
+    "recalled": [
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ],
+      [
+        "",
+        "",
+        null
+      ]
+    ]
+  }
+}

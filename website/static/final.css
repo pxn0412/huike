@@ -1,1 +1,127 @@
-.evidence-footer{align-items:flex-start}.evidence-footer>span{min-width:0;overflow-wrap:anywhere}.evidence-footer button{flex-shrink:0;white-space:nowrap}.source-open .evidence-footer{flex-direction:column;gap:12px}.source-open .evidence-footer button{align-self:flex-start}#toast{pointer-events:none}#identity-dialog input:focus{outline:2px solid #b8d8c8;outline-offset:2px}.loading p{max-width:480px;margin:12px auto}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.evidence-footer{align-items:flex-start}.evidence-footer>span{min-width:0;overflow-wrap:anywhere}.evidence-footer button{flex-shrink:0;white-space:nowrap}.source-open .evidence-footer{flex-direction:column;gap:12px}.source-open .evidence-footer button{align-self:flex-start}#toast{pointer-events:none}.loading p{max-width:480px;margin:12px auto}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Confirmed profile and ordinary recruitment, initial-round demo. */
+.saved-profile,.organizer,.profile-draft{margin:24px 0;max-width:920px}
+.profile-background{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0;font-size:18px}
+.profile-background span{background:#f1f5ed;border-radius:8px;padding:6px 12px}
+.profile-section{padding:12px 0;border-bottom:1px solid #e8e8e0}
+.profile-section h3{font-size:15px;color:#637152;margin:0 0 8px}
+.preserve-lines{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+.saved-profile .help-line{margin-top:18px}
+/* 比赛页顶部那一行入口 */
+.competition-actions{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin:18px 0}
+/* 发布招募：左边表单 + 右边「和 AI 一起完善」 */
+.recruit-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,0.9fr);gap:22px;align-items:stretch}
+.recruit-layout .demo-form{margin:0}
+/* 两边对齐：面板填满左栏这一行（= 表单的高度），底部跟表单一起收；依据卡再长也只在面板里滚 */
+#recruit-assist-slot{position:relative;min-height:0}
+.recruit-assist{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain}
+/* 面板自己滚：标题栏钉在面板顶部，「收起」滚下去也点得到 */
+.recruit-assist .subtitle-row{position:sticky;top:-25px;z-index:2;margin:-25px 0 0;padding:25px 0 10px;background:#fff}
+/* 只留面板这一条滚动条，对话区不再自己滚一层 */
+.recruit-assist .chat-list{max-height:none;overflow:visible}
+.assist-open{margin-left:10px;font-size:12px;padding:0}
+.brief-card{background:#f4f8f4;border:1px solid #dfe9e0;border-radius:11px;padding:14px 17px;margin:16px 0}
+.brief-card p{margin:8px 0 6px;font-size:13px}
+.assist-preview{margin:18px 0 0}
+.assist-preview h3{margin:12px 0 4px}
+.assist-preview .check-label{margin-top:12px}
+@media(max-width:1000px){.recruit-layout{grid-template-columns:1fr;align-items:start}#recruit-assist-slot{position:static}.recruit-assist{position:static;max-height:70vh}}
+.visibility-row label,.check-label{display:flex!important;align-items:center;gap:10px}
+.visibility-row input,.check-label input{width:18px!important;height:18px;accent-color:#547047}
+.demo-form{display:grid;gap:18px;max-width:920px}
+.demo-form label{display:grid;gap:8px;font-weight:500}
+.demo-form textarea,.organizer textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:90px;border:1px solid #d9ddd2;border-radius:10px;padding:12px;font:inherit;background:#fff;color:inherit}
+.demo-form input,.demo-form select{width:100%;box-sizing:border-box}
+.profile-reply{background:#f2f5ed;border-radius:12px;padding:14px 18px}
+/* 画像助手：对话区（AI 在左、我在右）与草稿区分开 */
+.panel-tools{display:inline-flex;gap:12px;align-items:center}
+.chat-list{display:flex;flex-direction:column;gap:12px;margin:18px 0 6px;max-height:440px;overflow-y:auto}
+.chat-message{display:flex;gap:9px;align-items:flex-start;max-width:84%}
+.chat-message p{margin:0;font-size:14px;line-height:1.7}
+.chat-role{flex:0 0 auto;font-size:11px;color:#4c7964;background:#eef5f1;border-radius:20px;padding:3px 9px;margin-top:1px}
+.chat-user{align-self:flex-end;flex-direction:row-reverse}
+.chat-user p{background:#176b58;color:#fff;border-radius:13px;padding:10px 14px}
+.chat-user .chat-role{background:#dcece4}
+.chat-ai p{background:#f4f7f4;border:1px solid #e6eae6;border-radius:13px;padding:10px 14px}
+@media(max-width:650px){.chat-message{max-width:100%}.panel-tools{gap:6px}}
+.profile-entry{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+.eligibility-row{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid #eceee6}
+.eligibility-row p{margin:5px 0}.eligibility-row small{color:#697262}
+.eligibility-row.missing{background:#fffaf0}.eligibility-row.unsatisfied{background:#fff4f1}
+.recruit-filter{display:flex;align-items:center;gap:12px;margin:22px 0}.recruit-filter select{max-width:420px}
+.recruitment{display:flex;flex-direction:column}.recruitment .actions{margin-top:auto}
+.recruitment h3{overflow-wrap:anywhere}.recruitment p{overflow-wrap:anywhere}
+.recruit-status{font-size:13px;white-space:nowrap;color:#587145}
+.danger{color:#a64f38}.sr-label{position:absolute;left:-10000px}
+#profile-feedback{padding-top:10px;color:#815a32}.demo-form .actions{flex-wrap:wrap}
+@media(max-width:650px){.demo-form{padding:18px}.recruit-filter{align-items:stretch;flex-direction:column}.recruit-filter select{width:100%}.saved-profile,.organizer,.profile-draft{max-width:100%}.profile-entry{align-items:stretch;flex-direction:column}}
+.chat-turn{scroll-margin-top:24px;margin:22px 0 32px}
+#ask-form{position:sticky;bottom:12px;z-index:5;background:#fff;padding:12px;border:1px solid #dfe7e3;border-radius:12px;box-shadow:0 4px 22px #163c3210}
+/* 登录页：没登录就挡住工作区，先登录再进。 */
+#login-page{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:26px;background:#f6f8fa;overflow:auto}
+#login-page[hidden]{display:none}
+.login-card{width:min(430px,100%);background:#fff;border:1px solid #e4e9ed;border-radius:18px;padding:34px 32px;box-shadow:0 20px 60px #142f3218}
+.login-brand{display:flex;align-items:center;gap:12px;font-weight:750;font-size:21px;color:#183c33;margin-bottom:22px}
+.login-brand small{display:block;font-size:10px;letter-spacing:2px;color:#83918d;font-weight:400;margin-top:5px}
+.login-card h1{font-size:26px;margin:0 0 8px}
+.login-card form{margin:22px 0 16px}
+.login-card label{display:grid;gap:8px;margin-bottom:16px;font-size:13px;color:#5a6b66}
+.login-card input{width:100%;box-sizing:border-box;border:1px solid #dbe4df;border-radius:9px;padding:12px;font:inherit;background:#fff;color:inherit}
+.login-card input:focus{outline:2px solid #b8d8c8;outline-offset:1px;border-color:#458e70}
+.login-card .actions{margin-top:6px}
+.login-card .actions button{width:100%;padding:13px}
+.login-card #login-error{margin:0 0 14px}
+/* 本地原文片段：默认折叠（平台已给引用时），点开才看全文。 */
+.evidence-fold{margin:14px 0}
+.evidence-fold>summary{cursor:pointer;font-size:12px;color:#587145;padding:11px 14px;background:#f4f7f2;border:1px solid #e2eae2;border-radius:9px;list-style:none}
+.evidence-fold>summary::-webkit-details-marker{display:none}
+.evidence-fold>summary:before{content:'▸ ';color:#7d9a80}
+.evidence-fold[open]>summary{border-bottom-left-radius:0;border-bottom-right-radius:0}
+.evidence-fold[open]>summary:before{content:'▾ '}
+.evidence-fold>.evidence{margin:10px 0}
+.evidence-fold .evidence-footer{align-items:flex-start}
+.evidence-fold-fail{font-size:12px;color:#a64f38;margin-top:14px}
+.quote-list{margin:8px 0 0;padding-left:0;list-style:none}
+.quote-list li{margin:6px 0;font-size:13px}
+/* 注册 / 登录分开：同一张卡片两个 tab。 */
+.auth-tabs{display:flex;gap:6px;background:#f2f5f2;border-radius:11px;padding:5px;margin-bottom:22px}
+.auth-tab{flex:1;border:0;background:none;padding:10px;border-radius:8px;font-size:14px;color:#6d7a74;cursor:pointer}
+.auth-tab.active{background:#fff;color:#176b58;font-weight:650;box-shadow:0 2px 8px #142f3214}
+.login-card .text-btn{padding:0 4px;font-size:13px;background:none;border:0;color:#176b58;cursor:pointer}
+/* 提问和回答：我的问题一律是右下角深绿气泡，回答一律是左边的白卡片；其他页面的对话共用同一套样式。 */
+.chat-message{max-width:78%}
+.chat-role{font-weight:650}
+.chat-user p{background:#176b58;color:#fff;border-radius:15px 15px 5px 15px;padding:11px 15px;box-shadow:0 3px 12px #176b5822}
+.chat-user .chat-role{background:#fff;color:#176b58;border:1px solid #cfe4da}
+.chat-ai p{background:#fff;border:1px solid #e2e8e4;border-radius:15px 15px 15px 5px;padding:11px 15px}
+.chat-ai .chat-role{background:#eef5f1;color:#3f6b57;border:1px solid #dbe9e1}
+/* 比赛页：一轮问答 = 我的提问气泡 + 回答 + 一块「依据与原文」，原文片段排在这一块的最下面。 */
+.chat-turn{display:flex;flex-direction:column;gap:14px}
+.chat-question{max-width:82%}
+.chat-question p{font-size:15px;font-weight:600}
+.chat-turn .ai-answer,.chat-turn .evidence-block,.chat-turn .eligibility-card{margin:0}
+.answer-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.evidence-block{padding:16px 20px}
+.evidence-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.evidence-head .help-line{margin:0}
+.evidence-group{margin-top:12px;padding-top:12px;border-top:1px dashed #e5ebe6}
+.evidence-label{display:block;font-size:12px;font-weight:650;color:#4c7964}
+.evidence-group .quote-list{margin-top:6px}
+.evidence-block .evidence-fold{margin:12px 0 0}
+.evidence-block .evidence-fold>summary{background:#f7faf7}
+.evidence-block .empty{padding:20px 0;background:none;border:0;text-align:left}
+/* 全部资料：收成一行放在标题下面，需要翻原文或重传知识库时再点开。 */
+.doc-fold{margin:18px 0 0;border:1px solid #e2eae2;border-radius:11px;background:#f8faf8}
+.doc-fold>summary{cursor:pointer;list-style:none;padding:12px 16px;font-size:13px;color:#4c7964}
+.doc-fold>summary::-webkit-details-marker{display:none}
+.doc-fold>summary:before{content:'▸ ';color:#7d9a80}
+.doc-fold[open]>summary:before{content:'▾ '}
+.doc-fold[open]>summary{border-bottom:1px solid #e7efe8}
+.doc-list{padding:6px 16px}
+.doc-list .document{background:#fff}
+@media(max-width:700px){.chat-message,.chat-question{max-width:100%}}
+/* 服务端还在跑改动前的 .py 时的提示条（正常重启后不会出现）：固定在最上面，不参与页面布局。 */
+.code-stale{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9999;max-width:760px;
+  margin:12px;padding:10px 16px;border:1px solid #e3c078;border-radius:10px;background:#fff8e6;
+  color:#6b4c05;font-size:13px;line-height:1.7;box-shadow:0 6px 20px rgba(70,50,0,.14)}
+.code-stale strong{color:#8a5a00}

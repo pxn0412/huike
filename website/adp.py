@@ -176,11 +176,18 @@ def credential_parts(credential):
 
 
 def save_payload(filename, cos_url, etag, crc64, size, kb_id, enable_scope, rule, kb_field='BotBizId'):
+    """SaveDoc 的请求体。
+
+    DuplicateFileHandles 交给平台按**内容哈希**判重（CheckType=1 按 cos_hash，
+    HandleType=2 跳过并返回重复文档的业务 ID）：同一份内容在知识库里只该有一份。
+    本地那份“按原始 PDF 哈希判重”仍然是主力，这里是远端兜底。
+    """
     return {kb_field: kb_id, 'FileName': filename,
             'FileType': Path(filename).suffix.lstrip('.').lower(),
             'CosUrl': cos_url, 'ETag': etag, 'CosHash': crc64, 'Size': str(size),
             'AttrRange': 1, 'Source': 0, 'Opt': 2, 'EnableScope': enable_scope,
-            'IsRefer': True, 'SplitRule': rule}
+            'IsRefer': True, 'SplitRule': rule,
+            'DuplicateFileHandles': [{'CheckType': 1, 'HandleType': 2}]}
 
 
 def submit(source, filename, args, config, kb_id, region, kb_field, rule):
@@ -213,12 +220,28 @@ def submit(source, filename, args, config, kb_id, region, kb_field, rule):
     return result
 
 
-def existing_document_names(kb_id, region):
-    """知识库里已有的文档名集合（用于上传前判重，省一次白传）。"""
+def describe_documents(kb_id, region):
+    """知识库里现有的文档：[{'doc_id', 'name', 'status'}]（新版 DescribeDocSummaryList）。
+
+    平台在回答的引用里给的是 DocBizId/DocId，本地要能反查，就必须先把
+    “知识库文档 ID ↔ 本地资料”记下来（见 store.link_knowledge_documents）。
+    """
     values = settings()
     result = api_call('DescribeDocSummaryList', {'KbId': kb_id}, region,
                       values['TENCENT_SECRET_ID'], values['TENCENT_SECRET_KEY'], 'new')
-    return {(item.get('Metadata') or {}).get('FileName') or '' for item in result.get('DocList', [])}
+    documents = []
+    for item in result.get('DocList', []):
+        name = (item.get('Metadata') or {}).get('FileName') or ''
+        doc_id = str(item.get('DocId') or '')
+        if doc_id and name:
+            documents.append({'doc_id': doc_id, 'name': name,
+                              'status': (item.get('Lifecycle') or {}).get('Status')})
+    return documents
+
+
+def existing_document_names(kb_id, region):
+    """知识库里已有的文档名集合（用于上传前判重，省一次白传）。"""
+    return {item['name'] for item in describe_documents(kb_id, region)}
 
 
 def push_document(content, filename, tag=DEFAULT_TAG, chunk_length=DEFAULT_CHUNK_LENGTH,

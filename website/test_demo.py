@@ -61,7 +61,7 @@ class DemoApiTests(unittest.TestCase):
     def setUp(self):
         self.store = self.server_module.STORE
         with self.store.db() as db:
-            for table in ('users', 'recruitments', 'profiles', 'agent_sessions', 'chunks',
+            for table in ('users', 'recruitments', 'profiles', 'agent_sessions', 'qa_turns', 'chunks',
                           'documents', 'uploads', 'competitions'):
                 db.execute(f'DELETE FROM {table}')
             db.execute('INSERT INTO competitions VALUES (?,?,?)', ('c1', '测试比赛', '2026'))
@@ -309,11 +309,9 @@ class DemoApiTests(unittest.TestCase):
         payload = {'competition_id': competition_id}
         if refresh is not None:
             payload['refresh'] = refresh
-        with patch('clients.agent_client.configured', return_value=True), \
-             patch('clients.agent_client.ask', return_value={
-                 'answer': answer, 'conversation_id': 'brief',
-                 'quotes': [{'index': 1, 'name': '通知.md', 'url': ''}],
-                 'used_reference_indices': [1]}) as ask:
+        with patch.object(self.store, 'answer', return_value={
+                 'mode': 'grounded', 'answer': answer, 'hits': [],
+                 'quotes': [{'index': 1, 'name': '通知.md', 'url': ''}]}) as ask:
             status, body = self.request('POST', '/api/recruit/brief', payload)
         return status, body, ask
 
@@ -323,16 +321,14 @@ class DemoApiTests(unittest.TestCase):
         self.assertIn('提交要求', body['brief']['answer'])
         self.assertEqual(ask.call_count, 1)
         # 同一身份 + 同一场比赛再问：直接用缓存，不再骚扰比赛助手
-        with patch('clients.agent_client.configured', return_value=True), \
-             patch('clients.agent_client.ask',
+        with patch.object(self.store, 'answer',
                    side_effect=AssertionError('缓存有效时不该再问一次')):
             _, again = self.request('POST', '/api/recruit/brief', {'competition_id': 'c1'})
         self.assertEqual(again['brief']['answer'], body['brief']['answer'])
         # 点「重新查一次」才真的再查
-        with patch('clients.agent_client.configured', return_value=True), \
-             patch('clients.agent_client.ask', return_value={
-                 'answer': '✅ 第二次查：队伍 1-3 人 [来源：通知]', 'conversation_id': 'brief2',
-                 'quotes': []}) as ask2:
+        with patch.object(self.store, 'answer', return_value={
+                 'mode': 'grounded', 'answer': '✅ 第二次查：队伍 1-3 人 [来源：通知]',
+                 'hits': [], 'quotes': []}) as ask2:
             _, refreshed = self.request('POST', '/api/recruit/brief',
                                         {'competition_id': 'c1', 'refresh': True})
         self.assertEqual(ask2.call_count, 1)
@@ -440,8 +436,7 @@ class DemoApiTests(unittest.TestCase):
 
     def test_long_profile_does_not_pollute_keyword_search(self):
         self.request('POST', '/api/profile/save', {'payload': {'experiences': '本人做过剪辑。' * 180}})
-        with patch('clients.agent_client.configured', return_value=True), \
-             patch('clients.agent_client.ask', return_value={'answer': '待核对', 'conversation_id': 'long'}), \
+        with patch('ai.configured', return_value=False), \
              patch.object(self.store, 'search', wraps=self.store.search) as search:
             status, _ = self.request('POST', '/api/ask', {'competition_id': 'c1', 'query': '人数'})
         self.assertEqual(status, 200)

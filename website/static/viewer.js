@@ -31,7 +31,26 @@ let timer;window.addEventListener('resize',()=>{clearTimeout(timer);timer=setTim
 try{
   const file=params.get('file');
   if(!/^\/api\/(?:uploads|documents)\/[a-f0-9]{32}\/file$/.test(file||''))throw Error('invalid');
-  pdf=await pdfjs.getDocument({url:file,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/',isEvalSupported:false}).promise;
-  document.querySelector('#total').textContent=pdf.numPages;document.querySelector('#page').max=pdf.numPages;
-  await render();
+  const response=await fetch(file.replace(/\/file$/, '/preview'));
+  if(!response.ok)throw Error('preview unavailable');
+  const info=await response.json();
+  if(info.location_kind==='page'){
+    pdf=await pdfjs.getDocument({url:file,cMapUrl:'/vendor/cmaps/',cMapPacked:true,standardFontDataUrl:'/vendor/standard_fonts/',wasmUrl:'/vendor/wasm/',isEvalSupported:false}).promise;
+    document.querySelector('#total').textContent=pdf.numPages;document.querySelector('#page').max=pdf.numPages;
+    await render();
+  }else{
+    document.querySelector('.toolbar').hidden=true;
+    const paper=document.querySelector('#paper');paper.replaceChildren();
+    message.textContent=info.metadata?.warning || '';
+    if(info.location_kind==='image' && info.mime_type!=='image/tiff'){
+      const img=document.createElement('img');img.src=file;img.alt=info.filename;img.style.maxWidth='100%';paper.append(img);
+    }else{
+      const label=document.createElement('p');label.textContent='提取正文（不代表原文件排版）；请通过上方入口打开或下载原件核对。';paper.append(label);
+    }
+    const extractionLabel=document.createElement('p');
+    extractionLabel.textContent=info.metadata?.text_extraction_method?.includes('deepseek_vision')
+      ? '提取文字（图片部分由 DeepSeek 识别，请对照原件核对）' : '提取文字（请对照原件核对）';
+    paper.append(extractionLabel);
+    const text=document.createElement('pre');text.className='extracted-text';text.textContent=info.pages.join('\n\n') || '未识别到可用文字。';paper.append(text);
+  }
 }catch{message.textContent='无法打开原文件，请关闭预览后重试。';}

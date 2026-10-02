@@ -96,15 +96,15 @@ class ChunkingTests(unittest.TestCase):
         blocks = chunking.build_blocks(pages, min_chars=0)
         self.assertEqual(len(blocks), 1)  # 跨页续写并进上一块，不新开块
         self.assertEqual(blocks[0]['page_end'], 2)
-        self.assertIn('（接上页）1．报名：即日起', blocks[0]['text'])
+        self.assertEqual(blocks[0]['text'].count('1．报名：即日起'), 1)
         self.assertNotIn('（接上页）四、大赛时间安排', blocks[0]['text'])
 
     def test_render_markdown_has_block_heading_and_separator(self):
         pages = [(1, f'一、大赛宗旨\n{LONG_BODY}'), (2, f'赛道二：AI 智能体应用赛\n{LONG_BODY}')]
         blocks = chunking.build_blocks(pages, min_chars=0)
         markdown = chunking.render_markdown(blocks, '测试通知', [('比赛', '测试比赛（2026）')])
-        self.assertIn('## 块 N01 ｜一、大赛宗旨（第 1 页，两赛道通用）', markdown)
-        self.assertIn('## 块 N02 ｜赛道二：AI 智能体应用赛（第 2 页，仅 AI 智能体应用赛）', markdown)
+        self.assertIn('## 块 N01 ｜一、大赛宗旨（第 1 页，赛道范围未单独标注）', markdown)
+        self.assertIn('## 块 N02 ｜赛道二：AI 智能体应用赛（第 2 页，赛道范围未单独标注）', markdown)
         self.assertEqual(markdown.count('\n---\n'), 3)  # 文件头 1 次 + 每块 1 次
 
     def test_render_yaml_keeps_text_as_block_scalar(self):

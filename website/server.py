@@ -9,13 +9,15 @@ import time
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, quote
 
 from store import Store
 import ai
 import clients
 import identity
 import demo
+import upload_jobs
+import document_updates
 from parsing import ocr_available
 
 ROOT = Path(__file__).resolve().parent
@@ -26,7 +28,7 @@ STORE = Store(os.environ.get('HUIKE_DATA_DIR', str(ROOT / 'data')))
 # 招募详情明明有画像却显示"还没有画像"——不是数据丢了，是还在跑改动前的 store.py。
 # 所以由服务端自己报出"我比磁盘上的代码旧"，页面直接把这件事写出来（见 /api/status）。
 SERVER_SOURCES = ('server.py', 'store.py', 'demo.py', 'ai.py', 'clients.py', 'agent.py',
-                  'kb.py', 'parsing.py', 'chunking.py', 'identity.py')
+                  'kb.py', 'adp.py', 'parsing.py', 'chunking.py', 'identity.py', 'document_formats.py', 'document_vision.py', 'evidence_scope.py', 'upload_jobs.py', 'document_updates.py')
 PROCESS_STARTED_AT = time.time()
 
 
@@ -49,7 +51,9 @@ BRIEF_LOCK = threading.Lock()
 
 
 def cached_brief(owner_id, competition, refresh=False):
-    key = (owner_id, competition['id'])
+    with STORE.db() as db:
+        revision = document_updates.fingerprint(db, competition['id'])
+    key = (owner_id, competition['id'], revision)
     with BRIEF_LOCK:
         item = BRIEF_CACHE.get(key)
     if item and not refresh and time.time() - item['at'] < BRIEF_TTL_SECONDS:
@@ -102,12 +106,15 @@ class Handler(BaseHTTPRequestHandler):
         clean['session_owner_id'] = owner_id
         return clean
 
-    def send(self, status, body, content_type='application/json; charset=utf-8'):
+    def send(self, status, body, content_type='application/json; charset=utf-8', filename=None):
         if not isinstance(body, bytes):
             body = json.dumps(body, ensure_ascii=False).encode('utf-8')
         self.send_response(status)
         self.send_header('Content-Type', content_type)
         self.send_header('Content-Length', str(len(body)))
+        if filename:
+            disposition = 'inline' if content_type == 'application/pdf' or content_type.startswith('image/') else 'attachment'
+            self.send_header('Content-Disposition', disposition + "; filename*=UTF-8''" + quote(filename, safe=''))
         if getattr(self, 'set_cookie', None):
             self.send_header('Set-Cookie', self.set_cookie)
         self.send_header('X-Content-Type-Options', 'nosniff')
@@ -123,13 +130,22 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, {'user': self.user})
         if self.require_login(path.path):
             return
+        job_match = re.fullmatch(r'/api/upload-jobs/([a-f0-9]{32})', path.path)
+        if job_match:
+            job = upload_jobs.get(self.owner_id, job_match.group(1))
+            return self.send(200, job) if job else self.send(404, {'error': '识别任务已过期或服务已重启，请重新上传。'})
+        update_match = re.fullmatch(r'/api/document-updates/([a-f0-9]{32})',path.path)
+        if update_match:
+            try:
+                return self.send(200,document_updates.get(STORE,update_match[1]))
+            except ValueError as exc:
+                return self.send(404,{'error':str(exc)})
         if path.path == '/api/status':
             return self.send(200, {'ai_configured': ai.configured(), 'mode': 'local',
                                    'ocr_available': ocr_available(),
                                    'profile_configured': clients.profile_agent.configured(),
                                    'code_stale': stale_sources(),
-                                   'answer_mode': 'agent' if clients.agent_client.configured()
-                                   else ('local' if ai.configured() else 'keyword')})
+                                   'answer_mode': 'grounded' if ai.configured() else 'keyword'})
         if path.path == '/api/competitions':
             return self.send(200, STORE.competitions())
         if path.path == '/api/profile':
@@ -156,19 +172,25 @@ class Handler(BaseHTTPRequestHandler):
             competition = next((c for c in STORE.competitions() if c['id'] == cid), None)
             if not competition:
                 return self.send(404, {'error': '比赛不存在。'})
-            return self.send(200, {'competition': competition, 'documents': STORE.documents(cid),
+            return self.send(200, {'competition': competition, 'documents': STORE.documents(cid,self.owner_id),
                                   'recruitment_count': STORE.competition_recruitment_count(cid)})
         if path.path == '/api/documents':
-            return self.send(200, STORE.documents(parse_qs(path.query).get('competition_id', [''])[0]))
+            return self.send(200, STORE.documents(parse_qs(path.query).get('competition_id', [''])[0],self.owner_id))
         match = re.fullmatch(r'/api/documents/([a-f0-9]{32})/chunks', path.path)
         if match:
             return self.send(200, {'chunks': STORE.chunks(match.group(1))})
-        match = re.fullmatch(r'/api/(uploads|documents)/([a-f0-9]{32})/file', path.path)
+        match = re.fullmatch(r'/api/(uploads|documents)/([a-f0-9]{32})/(file|preview)', path.path)
         if match:
-            content = STORE.file(*match.groups())
-            return self.send(200, content, 'application/pdf') if content else self.send(404, {'error': '资料不存在。'})
+            kind, uid, action = match.groups()
+            info = STORE.preview(kind, uid)
+            if info is None:
+                return self.send(404, {'error': '资料不存在。'})
+            if action == 'preview':
+                return self.send(200, info)
+            return self.send(200, STORE.file(kind, uid), info['mime_type'], filename=info['filename'])
         files = {'/': ('index.html', 'text/html; charset=utf-8'),
                  '/app.js': ('app.js', 'text/javascript; charset=utf-8'),
+                 '/document-updates.js': ('document-updates.js', 'text/javascript; charset=utf-8'),
                  '/demo.js': ('demo.js', 'text/javascript; charset=utf-8'),
                  '/viewer.html': ('viewer.html', 'text/html; charset=utf-8'),
                  '/viewer.js': ('viewer.js', 'text/javascript; charset=utf-8'),
@@ -211,6 +233,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if self.path == '/api/upload':
                 content = base64.b64decode(data.get('content', ''), validate=True)
+                if data.get('background') is True:
+                    return self.send(202, {'job_id': upload_jobs.submit(STORE, self.owner_id,
+                                                                      str(data.get('filename', '')), content)})
                 return self.send(200, STORE.upload(str(data.get('filename', '')), content))
             if self.path == '/api/example':
                 samples = list((Path.home() / 'Desktop').glob('2026年6月5日*慧科*通知*.pdf'))
@@ -219,7 +244,22 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200, STORE.upload(samples[0].name, samples[0].read_bytes()))
             if self.path == '/api/confirm':
                 # 上传者归属由服务端 Cookie 决定，前端自报的一律丢掉。
-                return self.send(200, STORE.confirm(self.with_owner(data, self.owner_id)))
+                result = STORE.confirm(self.with_owner(data, self.owner_id))
+                if result.get('update_id'):
+                    document_updates.schedule(STORE,result['update_id'])
+                return self.send(200,result)
+            if self.path == '/api/uploads/compare':
+                return self.send(200,document_updates.compare(STORE,str(data.get('upload_id') or ''),str(data.get('competition_id') or '')))
+            update_retry = re.fullmatch(r'/api/document-updates/([a-f0-9]{32})/retry',self.path)
+            if update_retry:
+                with STORE.db() as db:
+                    row = db.execute('SELECT actor FROM document_updates WHERE id=?',(update_retry[1],)).fetchone()
+                if not row or row['actor'] != self.owner_id:
+                    return self.send(403,{'error':'只能重试本人发起的更新。'})
+                with STORE.db() as db:
+                    db.execute("UPDATE document_updates SET status='pending',message='已重新提交更新，等待处理' WHERE id=? AND status='failed'",(update_retry[1],))
+                document_updates.schedule(STORE,update_retry[1])
+                return self.send(200,document_updates.get(STORE,update_retry[1]))
             match = re.fullmatch(r'/api/documents/([a-f0-9]{32})/sync', self.path)
             if match:
                 return self.send(200, {'knowledge_base': STORE.sync_knowledge_base(match.group(1))})
@@ -288,6 +328,10 @@ def backfill_knowledge_base():
     “还没进库”而重复上传（老资料尤其如此，它们是用命令行传进去的）。
     """
     try:
+        with STORE.db() as db:
+            updates = [r[0] for r in db.execute("SELECT id FROM document_updates WHERE status IN ('pending','syncing')")]
+        for update_id in updates:
+            document_updates.schedule(STORE,update_id)
         linked = STORE.link_knowledge_documents()
         if linked['linked']:
             print(f'已认领 {len(linked["linked"])} 份知识库已有文档', flush=True)

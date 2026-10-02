@@ -61,6 +61,7 @@ if __name__ == '__main__':
              patch('clients.agent_client.configured', return_value=True), \
              patch('clients.agent_client.ask', side_effect=competition_reply), \
              patch('clients.knowledge_base.push', return_value={'status': 'skipped', 'message': '离线测试'}), \
+             patch('clients.knowledge_base.configured', return_value=False), \
              patch('eval_adp.call', side_effect=AssertionError('Browser tests must not access ADP')), \
              patch('ai.configured', return_value=False):
             ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('HUIKE_PORT', '8777'))), server.Handler).serve_forever()

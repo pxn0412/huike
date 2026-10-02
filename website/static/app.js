@@ -110,7 +110,7 @@ function evidenceBlock(result,hits,mode){
   // 回答之后只留这一块「依据与原文」：引用、提示、本地原文片段都收进来，原文片段排在最下面。
   const notes=quoteNote(result), groups=quoteCards(result), local=localEvidence(result,hits);
   const quoted=(result.quotes||[]).length;
-  const meta=[mode==='agent'&&result.elapsed?`用时 ${result.elapsed} 秒`:'',quoted?'依据来自平台知识库':(mode==='keyword_evidence'?'依据来自本地资料检索':'')].filter(Boolean).join(' · ');
+  const meta=[mode==='agent'&&result.elapsed?`用时 ${result.elapsed} 秒`:'',quoted?(mode==='grounded'?'依据来自当前比赛原文':'依据来自平台知识库'):(mode==='keyword_evidence'?'依据来自本地资料检索':'')].filter(Boolean).join(' · ');
   if(!notes && !groups && !local) return '';
   return `<article class="card evidence-block"><div class="evidence-head"><span class="tag">依据与原文</span>${meta?`<span class="help-line">${escapeHTML(meta)}</span>`:''}</div>${notes}${groups}${local}</article>`;
 }
@@ -123,7 +123,7 @@ function quoteNote(result){
 function localEvidence(result,hits){
   // 本地原文片段：平台已经给了引用就收起来（要点一下才展开），没有引用时它才是唯一依据。
   if(!hits.length) return result.answer?'':'<div class="empty"><h3>未检索到相关片段</h3><p>可以换用更直接的关键词。未识别的扫描页不能检索；未命中不能证明原文没有相关要求。</p></div>';
-  const cards=hits.map(h=>`<article class="card evidence"><span class="tag">${h.ocr?'扫描文字识别 · 请对照原图':'PDF 原文片段'}</span><pre>${escapeHTML(h.text)}</pre><div class="evidence-footer"><span>${escapeHTML(h.title)} · PDF 第 ${h.page}${h.page_end>h.page?'-'+h.page_end:''} 页${h.chunk?' · 第 '+escapeHTML(h.chunk)+' 块':''}${h.heading?' 「'+escapeHTML(h.heading)+'」':''}</span><button class="secondary" data-action="source" data-id="${h.document_id}" data-page="${h.page}">查看原文 ↗</button></div></article>`).join('');
+  const cards=hits.map(h=>`<article class="card evidence"><span class="tag">${h.ocr?'扫描文字识别 · 请对照原图':'原文片段'}</span><pre>${escapeHTML(h.text)}</pre><div class="evidence-footer"><span>${escapeHTML(h.title)} · ${h.location_kind === 'section' ? '正文' : (h.location_kind === 'image' ? '图片 ' : '第 ') + h.page + (h.page_end>h.page?'-'+h.page_end:'') + (h.location_kind === 'image' ? '' : ' 页')}${h.chunk?' · 第 '+escapeHTML(h.chunk)+' 块':''}${h.heading?' 「'+escapeHTML(h.heading)+'」':''}</span><button class="secondary" data-action="source" data-id="${h.document_id}" data-page="${h.page}">查看原文 ↗</button></div></article>`).join('');
   const open=(result.quotes||[]).length?'':' open';
   return `<details class="evidence-fold"${open}><summary>本地原文片段（${hits.length} 块）</summary>${cards}</details>`;
 }
@@ -136,7 +136,7 @@ async function newSession(){
 
 function setPage(page, breadcrumb) { state.page = page; $('#breadcrumb').textContent = breadcrumb; document.querySelectorAll('.nav').forEach(n => n.classList.toggle('active', n.dataset.action === page)); }
 function competitionCards(items) {
-  if (!items.length) return `<div class="empty"><div class="symbol">▤</div><h3>从第一份比赛通知开始</h3><p>上传一份 PDF，将资料整理到对应比赛，之后随时查看原文件与原文片段。</p><button class="primary" data-action="upload">＋ 添加比赛资料</button></div>`;
+  if (!items.length) return `<div class="empty"><div class="symbol">▤</div><h3>从第一份比赛通知开始</h3><p>上传 PDF、图片或 Word，将资料整理到对应比赛，之后随时查看原文件与原文片段。</p><button class="primary" data-action="upload">＋ 添加比赛资料</button></div>`;
   return `<div class="cards">${items.map(c => `<button class="card competition" data-action="competition" data-id="${escapeHTML(c.id)}"><span class="tag">${escapeHTML(c.edition)} 届</span><h3>${escapeHTML(c.name)}</h3><p class="muted">${c.document_count} 份资料</p><span class="text-btn">进入比赛空间 →</span></button>`).join('')}</div>`;
 }
 function home() {
@@ -150,35 +150,65 @@ function library() {
 function uploadPage() {
   if (!identity) { showLogin(); return; }
   closeSource(); setPage('upload','工作空间 / 添加比赛资料');
-  $('#main').innerHTML = `<p class="eyebrow">ADD DOCUMENT</p><h1>把比赛通知，放到这里。</h1><p class="muted">保留原始 PDF，确认所属比赛后，加入资料列表。</p><div class="steps"><span>01 上传 PDF</span><span>02 核对信息</span><span>03 加入比赛</span></div><label class="upload-box" id="drop-zone"><div class="upload-icon">⇧</div><h2>点击选择，或拖入 PDF</h2><p class="muted">最多 20 MB · 200 页 · 原文件完整保留</p><input id="pdf-input" type="file" accept="application/pdf,.pdf"></label><p class="help-line">上传者：${escapeHTML(identity.name)}</p><div class="notice">${state.status.ai_configured ? 'AI 会整理资料信息，提交前请对照右侧原文确认。' : 'AI 尚未连接：资料信息由文件名预填，请手动核对。'} ${state.status.ocr_available ? '扫描页会自动进行本地文字识别，请以 PDF 原图为准。' : '扫描页需要文字识别后才能检索。'}</div>`;
+  $('#main').innerHTML = `<p class="eyebrow">ADD DOCUMENT</p><h1>把比赛通知，放到这里。</h1><p class="muted">保留原始文件，确认所属比赛后，加入资料列表。</p><div class="steps"><span>01 上传资料</span><span>02 核对信息</span><span>03 加入比赛</span></div><label class="upload-box" id="drop-zone"><div class="upload-icon">⇧</div><h2>点击选择，或拖入比赛资料</h2><p class="muted">PDF / Word / PNG、JPG、WebP、BMP、TIFF / TXT、MD · 每份最多 20 MB</p><input id="pdf-input" type="file" accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff,.txt,.md"></label><p class="help-line">上传者：${escapeHTML(identity.name)}</p><div class="notice">${state.status.ai_configured ? 'AI 会整理资料信息，提交前请对照右侧原文确认。' : 'AI 尚未连接：资料信息由文件名预填，请手动核对。'} ${state.status.ocr_available ? '扫描页会自动进行本地文字识别，请以原图为准。' : '扫描页需要文字识别后才能检索。'}</div>`;
 }
 async function uploadFile(file) {
   if (!file || state.busy) return;
   if (file.size > 20 * 1024 * 1024) { toast('文件不能超过 20 MB。'); return; }
   state.busy = true;
-  $('#main').innerHTML = `<div class="loading">正在读取 PDF 并保留页码…<p class="muted">扫描文件还需要识别图片中的文字${state.status.ai_configured ? '；AI 正在提取资料信息，可能需要一会儿，请勿关闭页面' : ''}。</p></div>`;
+  $('#main').innerHTML = `<div class="loading">正在读取资料并记录来源位置…<p class="muted">扫描文件还需要识别图片中的文字${state.status.ai_configured ? '；AI 正在提取资料信息，可能需要一会儿，请勿关闭页面' : ''}。</p></div>`;
   try {
     const content = await new Promise((resolve,reject) => { const r = new FileReader(); r.onload = () => resolve(r.result.split(',')[1]); r.onerror = () => reject(new Error('文件读取失败。')); r.readAsDataURL(file); });
-    state.upload = await api('/api/upload', {filename:file.name, content});
+    const submitted = await api('/api/upload', {filename:file.name, content, background:true});
+    let result = submitted;
+    if(submitted.job_id){
+      sessionStorage.setItem('pending-upload-job',submitted.job_id);
+      result = await waitForUpload(submitted.job_id);
+      sessionStorage.removeItem('pending-upload-job');
+    }
+    state.upload = result;
     confirmPage();
   } catch(error) { uploadPage(); toast(error.message); }
   finally { state.busy = false; }
 }
+async function waitForUpload(id){
+  while(true){
+    const job=await api(`/api/upload-jobs/${encodeURIComponent(id)}`);
+    if(job.status==='completed') return job.result;
+    if(job.status==='failed') {sessionStorage.removeItem('pending-upload-job');throw new Error(job.error);}
+    const label=job.stage==='recognizing' ? `正在识别：已处理 ${job.completed || 0} / ${job.total} 页`
+      : job.stage==='identifying' ? '文字提取完成，正在识别比赛信息…'
+      : job.stage==='queued' ? '资料已接收，等待开始识别…' : '正在读取资料并准备页面…';
+    $('#main').innerHTML=`<div class="loading"><h2>${escapeHTML(label)}</h2><p class="muted">长文件会自动分批处理，不需要手动拆分。完成后进入资料确认。</p></div>`;
+    await new Promise(resolve=>setTimeout(resolve,1000));
+  }
+}
 function confirmPage() {
   const u = state.upload;
-  $('#main').innerHTML = `<p class="eyebrow">CHECK DOCUMENT</p><h1>确认这份资料属于哪里</h1><p class="muted">只需核对资料身份，不必逐条审核比赛规则。</p><div class="notice" id="upload-notice"></div>${aiResultPanel(u)}<form id="confirm-form" class="card"><div class="form-grid"><label class="full">所属比赛<select name="competition_id" id="competition-select"><option value="">创建新比赛</option>${state.competitions.map(c=>`<option value="${escapeHTML(c.id)}" ${state.current?.id===c.id?'selected':''}>${escapeHTML(c.name)} · ${escapeHTML(c.edition)}</option>`).join('')}</select></label><label id="new-name">比赛名称<input name="name" autocomplete="off" maxlength="200" placeholder="例如：慧科杯 AI 创新大赛" required></label><label id="new-edition">届次 / 年份<input name="edition" autocomplete="off" maxlength="40" value="${escapeHTML(u.suggested.edition)}" placeholder="例如：2026" required></label><label class="full">资料标题<input name="title" autocomplete="off" required maxlength="300" value="${escapeHTML(u.suggested.title)}"></label><label>发布主体<input name="publisher" autocomplete="off" maxlength="120" placeholder="未识别，可留空"></label><label>发布时间<input name="published_at" type="date"></label><label class="full">适用赛道（资料身份备注）<input name="track" autocomplete="off" maxlength="200" placeholder="暂不确定，可留空"><span class="help-line">这里只记录备注；当前检索全比赛资料，尚不支持按赛道筛选。</span></label></div><div class="actions"><button type="button" class="secondary" data-action="cancel-upload">取消提交</button><button class="primary">确认添加</button></div></form><button class="text-btn" data-action="preview-upload">查看上传的 PDF ↗</button>`;
+  $('#main').innerHTML = `<p class="eyebrow">CHECK DOCUMENT</p><h1>确认这份资料属于哪里</h1><p class="muted">只需核对资料身份，不必逐条审核比赛规则。</p><div class="notice" id="upload-notice"></div>${aiResultPanel(u)}<form id="confirm-form" class="card"><div class="form-grid"><input type="hidden" name="competition_id" id="competition-select"><input type="hidden" name="create_new_confirmed" value=""><label id="new-name">比赛名称<input name="name" autocomplete="off" maxlength="200" placeholder="例如：慧科杯 AI 创新大赛" required></label><label id="new-edition">届次 / 年份<input name="edition" autocomplete="off" maxlength="40" value="${escapeHTML(u.suggested.edition)}" placeholder="例如：2026" required></label><label class="full">资料标题<input name="title" autocomplete="off" required maxlength="300" value="${escapeHTML(u.suggested.title)}"></label><label>发布主体<input name="publisher" autocomplete="off" maxlength="120" placeholder="未识别，可留空"></label><label class="full">适用赛道（如整份资料仅针对某赛道）<input name="track" autocomplete="off" maxlength="200" placeholder="没有单独限制可留空"><span class="help-line">只有整份资料都属于同一赛道才填写；混合通知留空，系统按明确的小节标题识别。</span></label></div><div class="actions"><button type="button" class="secondary" data-action="cancel-upload">取消提交</button><button class="primary">确认添加</button></div></form><button class="text-btn" data-action="preview-upload">查看上传的原文件 ↗</button>`;
   const form=$('#confirm-form');
+  form.insertAdjacentHTML('afterbegin','<section id="document-update-panel" class="document-update-panel" aria-live="polite" hidden></section>');
+  DocumentUpdates.reset();
+  const candidates=u.competition_matches||[];
+  form.querySelector('.form-grid').insertAdjacentHTML('beforebegin',
+    `<section class="notice" id="competition-match-note"><h3>${candidates.length ? '发现可能相同的比赛，请你确认' : !u.has_text ? '尚未判断所属比赛' : '未发现相似比赛'}</h3>
+    ${candidates.length ? `<p>这份资料可能属于下面的已有比赛。是否加入其中？确认比赛后，再选择新增或更新旧规定。</p>
+      ${candidates.map(c=>`<article class="card"><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.edition)} · 已有 ${Number(state.competitions.find(item=>item.id===c.id)?.document_count||0)} 份资料</p><button type="button" class="text-btn" data-action="inspect-candidate" data-id="${escapeHTML(c.id)}">查看已有比赛及资料 ↗</button><div class="candidate-documents" hidden></div><button type="button" class="primary" data-action="associate-existing" data-id="${escapeHTML(c.id)}">是，加入这场比赛</button></article>`).join('')}
+      <button type="button" class="secondary" data-action="associate-new">${candidates.length===1?'不是，这是另一场比赛':'都不是，这是另一场比赛'}</button>`
+      : `<p>${!u.has_text ? '未提取到可用文字，不能据此判断这是一场新比赛。建议先重新识别资料。' : '请核对比赛名称，确认后再创建比赛。'}</p><button type="button" class="secondary" data-action="associate-new">确认创建新比赛</button>`}
+    </section>`);
+  $('#ai-panel').before($('#competition-match-note'));
+  $('#competition-match-note').insertAdjacentHTML('afterend','<section id="association-decision" class="association-result" role="status" aria-live="polite" tabindex="-1" hidden></section>');
   applyAiSuggestions(form,u);
-  const matched=state.competitions.filter(c=>c.name===u.suggested.name && c.edition===u.suggested.edition);
-  if(!state.current && matched.length===1) form.elements.competition_id.value=matched[0].id;
   const notices=[];
   if(u.extraction_method==='ai') notices.push('AI 已整理资料信息。请对照原文确认，未知字段可留空。');
   else if(!state.status.ai_configured) notices.push('AI 尚未连接：以下信息由文件名预填，请手动核对比赛归属。');
-  else if(!u.has_text) notices.push('这份 PDF 未提取到可用文字，无法进行 AI 识别，请手动填写资料信息。');
+  else if(!u.has_text) notices.push('这份资料 未提取到可用文字，无法进行 AI 识别，请手动填写资料信息。');
   else notices.push('AI 未能完成识别：以下信息由文件名预填，请手动填写并核对。');
   if(!u.has_text) notices.push('你仍可保存和预览，暂时不能检索其正文。');
-  if(u.metadata?.ocr_pages?.length) notices.push(`已识别 ${u.metadata.ocr_pages.length} 个扫描页，识别文字可能存在误差。`);
-  if(u.metadata?.unreadable_pages?.length) notices.push(`第 ${u.metadata.unreadable_pages.join('、')} 页未识别到文字，不能用于回答。`);
+  if(u.metadata?.text_extraction_method?.includes('deepseek_vision')) notices.push('图片内容由 DeepSeek 识别，正文和表格保留来源位置；请重点核对日期、人数和金额。');
+  if(u.metadata?.ocr_pages?.length) notices.push(`已识别 ${u.metadata.ocr_pages.length} 个图片或扫描页面，识别文字可能存在误差。`);
+  if(u.metadata?.unreadable_pages?.length) notices.push(`${u.metadata?.location_kind === 'page' ? '第 ' + u.metadata.unreadable_pages.join('、') + ' 页' : '部分内容'}未识别到文字，不能用于回答。`);
   if(u.metadata?.warning) notices.push(u.metadata.warning);
   if(u.metadata?.ai_warning) notices.push(u.metadata.ai_warning);
   $('#upload-notice').textContent=notices.join(' ');
@@ -191,14 +221,14 @@ function aiResultPanel(u) {
       ? '<span class="ai-note">原文写法无法直接作为日期，请在表单中手动选择</span>' : '';
     return `<div class="ai-item" data-ai-item="${key}"><dt>${label}</dt><dd class="${raw ? '' : 'ai-blank'}" data-ai-field="${key}">${raw ? escapeHTML(raw) : '未识别，可留空'}</dd>${note}</div>`;
   }).join('');
-  const actions = '<div class="ai-actions"><button class="primary" data-action="ai-accept">确认</button><button class="secondary" data-action="ai-edit">修改</button></div>';
+  const actions = '<div class="ai-actions"><button class="primary" data-action="ai-accept">确认信息并添加资料</button><button class="secondary" data-action="ai-edit">修改资料信息</button></div>';
   if (u.extraction_method === 'ai') {
-    return `<section class="ai-panel" id="ai-panel" data-mode="ai"><div class="ai-head"><span class="ai-badge">AI 识别结果 · 待你确认</span></div><h3>AI 识别结果</h3><p class="help-line">AI 只从这份 PDF（${u.page_count} 页）中提取信息，不会自动创建比赛。可对照右侧原文核对，未知字段留空即可。</p><dl class="ai-grid">${rows}</dl>${actions}<p class="help-line">下方表单已按以上内容预填，可以直接修改。点击“确认”或“确认添加”后才会保存，原 PDF 始终保留。</p></section>`;
+    return `<section class="ai-panel" id="ai-panel" data-mode="ai"><div class="ai-head"><span class="ai-badge">AI 识别结果 · 待你确认</span></div><h3>AI 识别结果</h3><p class="help-line">AI 只从这份资料（${u.metadata?.location_kind === 'page' ? u.page_count + ' 页' : '按原文顺序提取'}）中提取信息，不会自动创建比赛。可对照右侧原文核对，未知字段留空即可。</p><dl class="ai-grid">${rows}</dl>${actions}<p class="help-line">下方表单已按以上内容预填，可以直接修改。点击“确认”或“确认添加”后才会保存，原文件始终保留。</p></section>`;
   }
   const warning = String(u.metadata?.ai_warning ?? '').trim();
   const reason = !state.status.ai_configured ? '当前没有配置可用的 AI 服务，资料身份由文件名预填。'
     : warning ? warning
-    : !u.has_text ? '这份 PDF 没有可识别文字，无法进行 AI 提取。'
+    : !u.has_text ? '这份资料 没有可识别文字，无法进行 AI 提取。'
     : '本次没有得到 AI 识别结果，请手动填写资料信息。';
   const fallbackActions = '<div class="ai-actions"><button class="secondary" data-action="ai-edit">手动填写</button></div>';
   return `<section class="ai-panel fallback" id="ai-panel" data-mode="fallback"><div class="ai-head"><span class="ai-badge warn">${state.status.ai_configured ? 'AI 识别未完成' : 'AI 尚未连接'}</span></div><h3>资料信息（文件名预填）</h3><p class="help-line">${escapeHTML(reason)}</p><dl class="ai-grid">${rows}</dl>${fallbackActions}</section>`;
@@ -231,8 +261,20 @@ function syncAiPanel() {
   if (badge) badge.textContent = edited ? 'AI 识别结果 · 已按你的修改调整' : 'AI 识别结果 · 待你确认';
 }
 function toggleNewCompetition() {
-  const existing = Boolean($('#competition-select').value);
-  for (const name of ['name','edition']) { const input = $('#confirm-form').elements[name]; input.required = !existing; input.disabled = existing; input.parentElement.hidden = existing; }
+  const isNew = $('#competition-select').value === '__new__';
+  for (const name of ['name','edition']) { const input = $('#confirm-form').elements[name]; input.required = isNew; input.disabled = !isNew; input.parentElement.hidden = !isNew; }
+  const selected = $('#competition-select').value;
+  const form = $('#confirm-form');
+  form.elements.create_new_confirmed.value = isNew ? '1' : '';
+  form.querySelector('.actions button.primary').disabled = !selected;
+  const candidate = (state.upload?.competition_matches||[]).find(item=>item.id===selected);
+  $('#competition-match-note').hidden = Boolean(selected);
+  const decision = $('#association-decision');
+  decision.hidden = !selected;
+  decision.innerHTML = selected ? `<div><span class="association-label">✓ ${candidate ? '已选择已有比赛' : '已选择创建新比赛'}</span><h3>${escapeHTML(candidate?.name || '作为另一场比赛添加')}</h3><p><strong>${candidate?'下一步：核对新旧变化，选择新增或更新，再确认提交。':'下一步：核对下方资料信息，再确认添加。'}</strong></p><p>资料尚未提交${candidate ? '，未确认不会改变旧规定' : '，请填写比赛名称和届次'}。</p></div>${state.upload?.competition_matches?.length ? '<button type="button" class="secondary" data-action="reselect-competition">重新选择</button>' : ''}` : '';
+  const accept = $('[data-action="ai-accept"]');
+  if(accept) accept.disabled = !selected;
+  DocumentUpdates.buttons();
 }
 async function selectCompetition(id) {
   const current = state.competitions.find(c=>c.id===id);
@@ -243,7 +285,7 @@ async function selectCompetition(id) {
 }
 function competitionPage() {
   setPage('library',`比赛库 / ${state.current.name}`);
-  $('#main').innerHTML = `<p class="eyebrow">COMPETITION SPACE · ${escapeHTML(state.current.edition)}</p><div class="subtitle-row"><h1>${escapeHTML(state.current.name)}</h1><button class="primary" data-action="upload">＋ 添加资料</button></div><p class="muted">${state.documents.length} 份资料 · 回答只依据这场比赛已添加的资料</p><div class="competition-actions"><button class="text-btn" data-action="recruit-plaza" data-cid="${escapeHTML(state.current.id)}">这场比赛招募（${state.recruitmentCount||0} 条）→</button></div>${documentFold()}<div id="space-content"></div>`;
+  $('#main').innerHTML = `<p class="eyebrow">COMPETITION SPACE · ${escapeHTML(state.current.edition)}</p><div class="subtitle-row"><h1>${escapeHTML(state.current.name)}</h1><button class="primary" data-action="upload">＋ 添加资料</button></div><p class="muted">${state.documents.length} 份资料 · 回答只依据这场比赛当前生效的资料</p><div class="competition-actions"><button class="text-btn" data-action="recruit-plaza" data-cid="${escapeHTML(state.current.id)}">这场比赛招募（${state.recruitmentCount||0} 条）→</button></div>${DocumentUpdates.notice(state.documents)}${documentFold()}<div id="space-content"></div>`;
   renderAsk();
 }
 function documentFold() {
@@ -251,11 +293,10 @@ function documentFold() {
   return `<details class="doc-fold"${state.docOpen?' open':''}><summary>这场比赛的全部资料（${state.documents.length} 份）· 需要原文时点开</summary><div class="doc-list">${documentCards()}</div></details>`;
 }
 function documentCards() {
-  const dates = state.documents.map(d=>d.published_at).filter(Boolean).sort(); const latest = dates.at(-1);
-  return state.documents.map(d=>`<article class="card document"><div class="doc-info"><h3>${escapeHTML(d.title)}</h3>${d.published_at && d.published_at===latest ? '<span class="tag">最近发布</span>' : ''}<p>发布：${escapeHTML(d.published_at || '未确认')}　上传：${escapeHTML(new Date(d.uploaded_at).toLocaleString('zh-CN'))}</p><p>来源：用户上传 · ${escapeHTML(d.uploader)}</p><p>${d.page_count} 页 · ${d.has_text?'可检索原文':'未提取到文字，需要 OCR'} · ${d.chunk_count||0} 块 · 赛道备注：${escapeHTML(d.track||'未确认')}</p><p>知识库：${escapeHTML(kbLabel(kbFromDocument(d)))}</p></div><button class="secondary" data-action="source" data-id="${d.id}">查看原文 ↗</button> <button class="text-btn" data-action="sync" data-id="${d.id}">重新上传到知识库</button></article>`).join('') || '<div class="empty">这场比赛还没有资料。</div>';
+  return DocumentUpdates.cards(state.documents);
 }
 function renderAsk() {
-  $('#space-content').innerHTML = `<div class="question-chips"><button data-action="question" data-query="一个人能参加吗？">一个人能参加吗？</button><button data-action="question" data-query="需要提交什么材料？">需要提交什么材料？</button><button data-action="question" data-query="报名条件是什么？">报名条件是什么？</button></div>${state.status.answer_mode==='agent'?'<div class="session-row"><span class="help-line">同一场比赛的追问会接着上文回答；点“新会话”就断开上文重新开始。</span><button class="text-btn" data-action="new-session">新会话</button></div>':''}<div id="answers">${state.conversations[state.current.id] || '<div class="empty"><div class="symbol">❝</div><h3>让依据就在手边</h3><p>有可定位的引用时，可以在旁边打开原始资料；页码仅在能够核实时展示。</p></div>'}</div><form id="ask-form" class="chat-input"><input name="query" class="search-input" autocomplete="off" required maxlength="1000" value="${escapeHTML(state.pendingQuery)}" placeholder="继续提问，例如：那需要提交什么材料？" aria-label="检索问题"><button class="primary">${state.status.answer_mode==='agent'||state.status.ai_configured?'提问':'查原文'}</button></form><div class="profile-entry"><button class="secondary" data-action="inline-profile">补充我的情况</button><button class="text-btn" data-action="profile">查看我的竞赛画像 →</button></div><div id="inline-profile"></div>`;
+  $('#space-content').innerHTML = `<div class="question-chips"><button data-action="question" data-query="一个人能参加吗？">一个人能参加吗？</button><button data-action="question" data-query="需要提交什么材料？">需要提交什么材料？</button><button data-action="question" data-query="报名条件是什么？">报名条件是什么？</button></div>${state.status.answer_mode==='grounded'?'<div class="session-row"><span class="help-line">简短追问可接着这场比赛的上文；点“新会话”就重新开始。</span><button class="text-btn" data-action="new-session">新会话</button></div>':''}<div id="answers">${state.conversations[state.current.id] || '<div class="empty"><div class="symbol">❝</div><h3>让依据就在手边</h3><p>有可定位的引用时，可以在旁边打开原始资料；页码仅在能够核实时展示。</p></div>'}</div><form id="ask-form" class="chat-input"><input name="query" class="search-input" autocomplete="off" required maxlength="1000" value="${escapeHTML(state.pendingQuery)}" placeholder="继续提问，例如：那需要提交什么材料？" aria-label="检索问题"><button class="primary">${state.status.ai_configured?'提问':'查原文'}</button></form><div class="profile-entry"><button class="secondary" data-action="inline-profile">补充我的情况</button><button class="text-btn" data-action="profile">查看我的竞赛画像 →</button></div><div id="inline-profile"></div>`;
 }
 async function profile() { await profilePage(); }
 async function navigate(action) {
@@ -277,12 +318,47 @@ document.addEventListener('click', async event => {
     if(state.busy && !['close-source','source'].includes(action)){toast('正在处理，请稍候。');return;}
     if (['home','library','upload','profile','recruit'].includes(action)) { captureDraft(); return await navigate(action); }
     if (await featureClick(button)) return;
+    if (await DocumentUpdates.click(button)) return;
     if (action==='auth-login') return authMode('login');
     if (action==='auth-register') return authMode('register');
     if (action==='logout') { await api('/api/auth/logout',{}); location.reload(); return; }
     if (action==='close-source') return closeSource();
     if (action==='competition') return await selectCompetition(button.dataset.id);
-    if (action==='preview-upload') return openSource(state.upload.preview_url,state.upload.filename);
+    if (action==='inspect-candidate') {
+      const candidate=(state.upload?.competition_matches||[]).find(item=>item.id===button.dataset.id);
+      if(!candidate) return;
+      const list=button.parentElement.querySelector('.candidate-documents');
+      if(!list.hidden) {list.hidden=true;button.textContent='查看已有比赛及资料 ↗';return;}
+      button.disabled=true;
+      try {
+        const summary=await api(`/api/competitions/${encodeURIComponent(candidate.id)}/summary`);
+        if(!list.isConnected) return;
+        list.innerHTML=(summary.documents||[]).map(d=>`<article class="card"><strong>${escapeHTML(d.title)}</strong><p>${escapeHTML(d.publisher||'发布主体未标注')} · ${escapeHTML(d.published_at||'发布时间未标注')}</p><button type="button" class="secondary" data-action="candidate-source" data-id="${escapeHTML(d.id)}" data-title="${escapeHTML(d.title)}">查看原文件 ↗</button></article>`).join('') || '<p>这场比赛暂时没有资料。</p>';
+        list.hidden=false;
+        button.textContent='收起已有资料';
+      } finally {button.disabled=false;}
+      return;
+    }
+    if (action==='candidate-source') return openSource(`/api/documents/${encodeURIComponent(button.dataset.id)}/file`,button.dataset.title,Number(button.dataset.page||1));
+    if (action==='associate-existing' || action==='associate-new') {
+      const cid=action==='associate-new'?'__new__':button.dataset.id;
+      if(cid!=='__new__' && !(state.upload?.competition_matches||[]).some(item=>item.id===cid)) return;
+      $('#competition-select').value=cid;
+      toggleNewCompetition();
+      $('#association-decision').focus({preventScroll:true});
+      $('#association-decision').scrollIntoView({block:'start',behavior:'smooth'});
+      await DocumentUpdates.load(cid);
+      return;
+    }
+    if (action==='reselect-competition') {
+      $('#competition-select').value='';
+      DocumentUpdates.reset();
+      toggleNewCompetition();
+      $('#competition-match-note').scrollIntoView({block:'start',behavior:'smooth'});
+      $('#competition-match-note [data-action="associate-existing"]')?.focus({preventScroll:true});
+      return;
+    }
+    if (action==='preview-upload') return openSource(state.upload.preview_url,state.upload.filename,Number(button.dataset.page||1));
     if (action==='question') {$('#ask-form').elements.query.value=button.dataset.query;$('#ask-form').requestSubmit();return;}
     if (action==='new-session') return await newSession();
     if (action==='ai-accept') {
@@ -332,10 +408,21 @@ document.addEventListener('submit', async event => {
     if (form.id==='home-question') { state.pendingQuery=data.query.trim(); library(); return; }
     if (submit) submit.disabled=true;
     if (form.id==='confirm-form') {
+      if (!data.competition_id) { toast('请先确认这份资料属于哪场比赛。'); return; }
+      Object.assign(data,DocumentUpdates.payload());
+      if (data.competition_id === '__new__') data.competition_id = '';
       state.busy=true;
       const result=await api('/api/confirm',{...data, upload_id:state.upload.upload_id,uploader:identity.name});
+      let update=null;
+      if(result.update_id) {
+        const panel=$('#document-update-panel');
+        panel.hidden=false;panel.innerHTML='<h2>资料已保存，正在准备当前问答依据…</h2><p role="status">准备完成后才切换。现在继续保留旧依据。</p>';
+        state.upload=null;
+        update=await DocumentUpdates.watch(result.update_id).catch(error=>({status:'syncing',message:'资料已保存，状态暂未获取：'+error.message}));
+        if(update.status==='ready') state.conversations[result.competition_id]='';
+      }
       state.upload=null; state.competitions=await api('/api/competitions'); state.pendingQuery=''; await selectCompetition(result.competition_id);
-      toast(result.duplicate?'这场比赛已有相同文件，已打开已有资料。':kbToast(result.knowledge_base));
+      toast(result.duplicate?'这场比赛已有相同文件，已打开已有资料。':update?.message || kbToast(result.knowledge_base));
     }
     if (form.id==='ask-form') {
       state.busy=true;
@@ -347,8 +434,8 @@ document.addEventListener('submit', async event => {
       const result=await api('/api/ask',{competition_id:cid,query:data.query});
       const hits=result.citations?.length ? result.citations : (result.hits||[]);
       const mode=result.mode||'';
-      const answerTag=mode==='agent'?'智能体回答 · 请核对依据':mode==='agent_failed'?'智能体暂时没有回答':'AI 回答 · 请核对依据';
-      const notice=mode==='agent_failed'?`<p class="error">智能体没有回答成功：${escapeHTML(result.agent_error||'未知原因')}</p>`:'';
+      const answerTag=mode==='grounded'?'当前比赛资料回答 · 请核对依据':mode==='agent'?'智能体回答 · 请核对依据':'AI 回答 · 请核对依据';
+      const notice=mode.endsWith('_failed')?`<p class="error">这次没有回答成功：${escapeHTML(result.agent_error||'未知原因')}</p>`:'';
       const evidence=evidenceBlock(result,hits,mode);
       // 依据、提示和本地原文片段都由 evidenceBlock 一起渲染，紧跟在回答之后。
       const html=questionHTML(data.query)+notice+(result.answer?`<article class="card ai-answer"><div class="answer-head"><span class="chat-role">AI</span><span class="tag">${answerTag}</span></div><p>${escapeHTML(result.answer).replaceAll('\n','<br>')}</p></article>`:'')+answerExtras(result,cid)+evidence;
@@ -362,9 +449,9 @@ document.addEventListener('submit', async event => {
       $('#answers').innerHTML=state.conversations[cid];
       scrollLatestTurn();
     } if(form.id==='profile-form' && $('#profile-answers')) $('#profile-answers').innerHTML=`<p class="error">${escapeHTML(error.message)}</p>`; }
-  finally { state.busy=false; if(submit) submit.disabled=false; }
+  finally { state.busy=false; if(submit) submit.disabled=false; DocumentUpdates.buttons(); }
 });
-document.addEventListener('change',event=>{ if(event.target.id==='pdf-input') uploadFile(event.target.files[0]); if(event.target.id==='competition-select') toggleNewCompetition(); });
+document.addEventListener('change',event=>{ if(event.target.id==='pdf-input') uploadFile(event.target.files[0]); if(event.target.id==='competition-select') toggleNewCompetition(); DocumentUpdates.change(event.target); });
 // 折叠行是原生 details，toggle 不冒泡，所以用捕获阶段记住开合状态（重传知识库后重渲染也不会自己合上）。
 document.addEventListener('toggle',event=>{ if(event.target?.classList?.contains('doc-fold')) state.docOpen=event.target.open; },true);
 document.addEventListener('input',event=>{ if(event.target.id==='library-filter') { const q=event.target.value.toLowerCase(); $('#competition-cards').innerHTML=competitionCards(state.competitions.filter(c=>(c.name+c.edition).toLowerCase().includes(q))); } if(event.target.closest('#confirm-form')) syncAiPanel(); });
@@ -380,4 +467,11 @@ api('/api/auth/session').then(async session=>{
   hideLogin();
   const [items,status]=await Promise.all([api('/api/competitions'),api('/api/status')]);
   state.competitions=items; state.status=status; checkCodeStale(status); home();
+  const pending=sessionStorage.getItem('pending-upload-job');
+  if(pending){
+    state.busy=true;
+    try{state.upload=await waitForUpload(pending);sessionStorage.removeItem('pending-upload-job');confirmPage();}
+    catch(error){sessionStorage.removeItem('pending-upload-job');uploadPage();toast(error.message);}
+    finally{state.busy=false;}
+  }
 }).catch(error=>{$('#main').innerHTML=`<div class="error">服务连接失败：${escapeHTML(error.message)}。请确认启动窗口仍然打开，再刷新页面。</div>`;});

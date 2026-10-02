@@ -2,8 +2,8 @@
 
 对应 docs/adp/2026-09-19-知识库切片与元数据规格.md：
 R1 不跨一级编号切；R2 目标 200–800 字，语义完整的小节允许短于下限；
-R3 清单整块不切散；R4 块首一行标题（块号 + 内容范围 + 页码 + 赛道）；
-R5 跨页续写处补一句重叠；R6 图像/二维码噪声行整行丢弃；R7 标注赛道但不改原文。
+R3 清单和表格优先按完整条目切；R4 块首带标题和来源范围；
+R5 跨页续写保留标题上下文、不重复原句；R6 保守过滤二维码噪声；R7 赛道来自确认信息。
 
 这里的判断全部是规则，模型不参与，同一份文件每次切出来结果一致。
 """
@@ -18,7 +18,8 @@ PBL_HINTS = ('PBL', 'PB')  # “PB” 是 PBL 被 OCR 认断后的形态（“PB
 AI_TRACK = 'AI 智能体应用赛'
 PBL_TRACK = 'PBL 项目开发赛'
 AI_TRACK_OCR = re.compile(r'A\s*[|丨]\s*智能体')  # OCR 把 “AI” 认成 “A 丨” 时的兜底
-TRACK_LABEL = {'AI': '仅 AI 智能体应用赛', 'PBL': '仅 PBL 项目开发赛', None: '两赛道通用'}
+TRACK_LABEL = {'AI': '仅 AI 智能体应用赛', 'PBL': '仅 PBL 项目开发赛', None: '赛道范围未单独标注'}
+MARKDOWN_HEADING = re.compile(r'^#{1,6}\s+\S')
 MIN_CHARS = 200
 MAX_CHARS = 800
 
@@ -44,10 +45,8 @@ def normalize(text):
 def is_noise(line):
     """二维码、水印被 OCR 成 "0 到 0 0 到" 的行，整行丢弃（R6）。"""
     body = re.sub(r'\s', '', line)
-    if len(body) < 2:
-        return True  # 被 OCR 切碎的单个字（“丿”“回”）不是正文
-    junk = sum(1 for char in body if char in '0到苤的过的回也')
-    return junk / len(body) >= 0.6
+    # “1”“无”“否”等短答案也是证据。只丢明显的重复二维码 OCR 噪声。
+    return bool(re.fullmatch(r'[0到苤回]+', body) and len(body) >= 4 and '0' in body)
 
 
 def is_heading(line, short_titles=True, previous=''):
@@ -58,6 +57,10 @@ def is_heading(line, short_titles=True, previous=''):
     排版规范的文件可以关掉 short_titles，避免误判。
     """
     if not line or len(line) > 40:
+        return False
+    if MARKDOWN_HEADING.match(line):
+        return True
+    if line.startswith('|') or len(line) == 1:
         return False
     if HEADING_1.match(line) or HEADING_2.match(line):
         return True
@@ -111,14 +114,18 @@ def sections_of(pages, short_titles=True):
 
     top 记录该小节所属的一级编号，用来判断父子关系；没有一级编号时为 ''。
     """
-    sections, previous = [], ''
+    sections, previous, top = [], '', ''
     for number, text in pages:
-        current, top = None, ''  # top 只在同一页内用于判断父子小节
+        current = None
         for raw in normalize(text).splitlines():
             line = raw.strip()
-            if not line or is_noise(line):
+            if not line:
+                if current and current['lines'] and current['lines'][-1]:
+                    current['lines'].append('')
                 continue
-            if HEADING_1.match(line):
+            if is_noise(line):
+                continue
+            if HEADING_1.match(line) or line.startswith('# '):
                 top = line
             heading = is_heading(line, short_titles, previous)
             previous = line
@@ -157,6 +164,8 @@ def overlap_tail(block, limit=60):
 
 def build_blocks(pages, prefix='N', min_chars=MIN_CHARS, max_chars=MAX_CHARS, short_titles=True):
     """pages: [(页码, 正文)]。返回块列表，块内保留原文措辞。"""
+    if max_chars < 64:
+        raise ValueError('max_chars 至少为 64。')
     sections = sections_of(pages, short_titles)
     prepared, index = [], 0
     while index < len(sections):
@@ -164,6 +173,8 @@ def build_blocks(pages, prefix='N', min_chars=MIN_CHARS, max_chars=MAX_CHARS, sh
         following = sections[index + 1] if index + 1 < len(sections) else None
         # 只有标题、几乎没有正文的一级小节，并进它的子小节，保留层级（R1、R3）。
         if following and section['heading'] and following['heading'] \
+                and section['page'] == following['page'] \
+                and (HEADING_2.match(following['heading']) or following['heading'].startswith('##')) \
                 and len(section_text(section)) <= 60 and following['top'] == section['heading']:
             following['heading'] = f"{section['heading']} · {following['heading']}"
             following['lines'] = section['lines'] + following['lines']
@@ -173,6 +184,11 @@ def build_blocks(pages, prefix='N', min_chars=MIN_CHARS, max_chars=MAX_CHARS, sh
         index += 1
     blocks = []
     for section in prepared:
+        # Repeat the parent heading for later children too, not only the first child.
+        if section['heading'] and section['top'] and section['heading'] != section['top'] \
+                and (HEADING_2.match(section['heading']) or section['heading'].startswith('##')) \
+                and not section['heading'].startswith(section['top']):
+            section['heading'] = section['top'] + ' · ' + section['heading']
         text = section_text(section)
         if not text:
             continue
@@ -180,22 +196,105 @@ def build_blocks(pages, prefix='N', min_chars=MIN_CHARS, max_chars=MAX_CHARS, sh
         # 跨页续写：没有标题的小节并进上一块，必要时补一句重叠（R5）。
         if previous and not section['heading'] and section['page'] != previous['page_end'] \
                 and len(previous['text']) + len(text) + 1 <= max_chars:
-            tail = overlap_tail(previous)
-            if tail:
-                text = f'（接上页）{tail}{text}'
             previous['text'] += '\n' + text
             previous['page_end'] = section['page']
             continue
+        # A page continuation keeps context without pretending a repeated sentence is source text.
+        heading = section['heading']
+        if not heading and previous and section['page'] != previous['page_end']:
+            heading = previous['heading']
         blocks.append({'page': section['page'], 'page_end': section['page'],
-                       'heading': section['heading'], 'text': text})
+                       'heading': heading, 'text': text})
+    bounded = []
+    for block in blocks:
+        for text in split_block(block['text'], block['heading'], max_chars):
+            bounded.append({**block, 'text': text})
+    blocks = bounded
     for index, block in enumerate(blocks, 1):
         block['chunk_id'] = f'{prefix}{index:02d}'
-        block['track'] = track_of(block['heading'], block['text'])
+        # Scope comes from confirmed document metadata, never hard-coded competition keywords.
+        block['track'] = None
         block['chars'] = len(block['text'])
     return blocks
 
 
-def render_markdown(blocks, title, header):
+def split_block(text, heading, limit):
+    """Pack paragraphs/list items; split long sentences only when unavoidable.
+
+    Markdown tables remain whole if they fit. Large tables repeat their header and
+    split between rows. Exceptionally wide rows fall back to bounded text segments.
+    """
+    if len(text) <= limit:
+        return [text]
+    prefix = heading + '\n' if heading and len(heading) < limit // 2 else ''
+    body = text[len(heading):].lstrip('\n') if prefix and text.startswith(heading) else text
+    budget = limit - len(prefix)
+    units = []
+    lines = body.splitlines()
+    i = 0
+    while i < len(lines):
+        if lines[i].startswith('|'):
+            table = []
+            while i < len(lines) and lines[i].startswith('|'):
+                table.append(lines[i]); i += 1
+            if len(table) > 1 and re.fullmatch(r'[| :\-]+', table[1]):
+                header = '\n'.join(table[:2])
+                current = header
+                for row in table[2:]:
+                    if len(current) + len(row) + 1 <= budget:
+                        current += '\n' + row
+                    else:
+                        if current != header:
+                            units.append(current)
+                        if len(header) + len(row) + 1 <= budget:
+                            current = header + '\n' + row
+                        else:
+                            # Oversized row: preserve all cells, including the header context.
+                            units.extend(sentence_parts(header + '\n' + row, budget))
+                            current = header
+                if current != header or len(table) == 2:
+                    units.extend(sentence_parts(current, budget))
+            else:
+                units.extend(sentence_parts('\n'.join(table), budget))
+            continue
+        units.extend(sentence_parts(lines[i], budget))
+        i += 1
+    result, current = [], ''
+    for unit in units:
+        if not unit:
+            continue
+        candidate = current + '\n' + unit if current else unit
+        if len(candidate) > budget:
+            result.append(prefix + current)
+            current = unit
+        else:
+            current = candidate
+    if current:
+        result.append(prefix + current)
+    return result
+
+
+def sentence_parts(text, limit):
+    if len(text) <= limit:
+        return [text]
+    pieces, current = [], ''
+    for sentence in re.split(r'(?<=[。！？；!?;])|(?<=\.)\s+', text):
+        if len(sentence) > limit:
+            if current:
+                pieces.append(current); current = ''
+            while len(sentence) > limit:
+                cut = sentence.rfind(' ', 0, limit + 1)
+                cut = cut + 1 if cut >= limit // 2 else limit
+                pieces.append(sentence[:cut]); sentence = sentence[cut:]
+        if len(current) + len(sentence) > limit:
+            pieces.append(current); current = ''
+        current += sentence
+    if current:
+        pieces.append(current)
+    return pieces
+
+
+def render_markdown(blocks, title, header, location_kind='page', track_scope=''):
     """输出可上传知识库的 Markdown：块首一行标题，块间 --- 分隔。"""
     lines = [f'# {title}', '']
     lines += [f'- {key}：{value}' for key, value in header]
@@ -203,8 +302,11 @@ def render_markdown(blocks, title, header):
     for block in blocks:
         page = str(block['page']) if block['page'] == block['page_end'] \
             else f"{block['page']}—{block['page_end']}"
+        location = f'第 {page} 页' if location_kind == 'page' else \
+            f'第 {page} 张图片' if location_kind == 'image' else '正文（原始页码未确认）'
+        scope = track_scope or TRACK_LABEL[block['track']]
         lines.append(f"## 块 {block['chunk_id']} ｜{block['heading'] or '正文'}"
-                     f"（第 {page} 页，{TRACK_LABEL[block['track']]}）")
+                     f"（{location}，{scope}）")
         lines += ['', block['text'], '', '---', '']
     return '\n'.join(lines).rstrip() + '\n'
 

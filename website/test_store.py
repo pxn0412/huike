@@ -14,6 +14,7 @@ import adp
 import agent
 import ai
 import eval_adp
+import evidence_scope
 
 
 def pdf_bytes(text='Teams can have 1-5 members. Registration deadline 2026-06-30.'):
@@ -58,7 +59,13 @@ class StoreTests(unittest.TestCase):
     def confirm(self, upload, **kwargs):
         data = {'upload_id': upload['upload_id'], 'title': 'Notice', 'name': 'Competition A',
                 'edition': '2026', 'uploader': 'Test student', 'role': 'student'}
-        return self.store.confirm({**data, **kwargs})
+        data.update(kwargs)
+        if 'competition_id' not in data:
+            exact = next((item for item in self.store.competitions()
+                          if item['name'] == data['name'] and item['edition'] == data['edition']), None)
+            if exact:
+                data['competition_id'] = exact['id']
+        return self.store.confirm(data)
 
     def test_confirmation_required_and_page_preserved(self):
         upload = self.upload()
@@ -87,6 +94,71 @@ class StoreTests(unittest.TestCase):
         self.assertFalse(new['duplicate'])
         self.assertEqual(len(self.store.documents(first['competition_id'])), 2)
 
+    def test_short_and_official_competition_names_require_explicit_association(self):
+        first = self.confirm(self.upload(), name='“慧科杯”AI创新大赛')
+        official = '浙江广厦建设职业技术大学2026年“慧科杯”AI创新大赛'
+        extracted = {'title': '新通知', 'name': official, 'edition': '2026年',
+                     'publisher': '', 'published_at': '', 'track': ''}
+        with patch('ai.configured', return_value=True), \
+                patch('ai.extract_identity', return_value=extracted):
+            new_upload = self.upload(pdf_bytes('AI track requires an online link.'))
+        self.assertEqual([item['id'] for item in new_upload['competition_matches']],
+                         [first['competition_id']])
+        matches = self.store.match_competitions(official, '2026年')
+        self.assertEqual([item['id'] for item in matches], [first['competition_id']])
+        with self.assertRaisesRegex(ValueError, '已有比赛'):
+            self.confirm(new_upload, name=official, edition='2026年')
+        second = self.confirm(new_upload, name=official, edition='2026年',
+                              competition_id=first['competition_id'])
+        self.assertEqual(second['competition_id'], first['competition_id'])
+        self.assertEqual(len(self.store.competitions()), 1)
+
+    def test_exact_existing_competition_is_not_selected_implicitly(self):
+        first = self.confirm(self.upload())
+        next_upload = self.upload(pdf_bytes('A second official notice.'))
+        with self.assertRaisesRegex(ValueError, '选择已有比赛'):
+            self.store.confirm({'upload_id': next_upload['upload_id'], 'title': 'Next notice',
+                                'name': 'Competition A', 'edition': '2026',
+                                'uploader': 'Test student'})
+        self.assertEqual(len(self.store.documents(first['competition_id'])), 1)
+        confirmed = self.store.confirm({'upload_id': next_upload['upload_id'], 'title': 'Next notice',
+                                        'competition_id': first['competition_id'],
+                                        'uploader': 'Test student'})
+        self.assertEqual(confirmed['competition_id'], first['competition_id'])
+
+    def test_similar_title_can_be_deliberately_created_as_a_different_competition(self):
+        first = self.confirm(self.upload(), name='“慧科杯”AI创新大赛')
+        other = self.confirm(self.upload(pdf_bytes('Different school contest.')),
+                             name='另一所学校2026年“慧科杯”AI创新大赛',
+                             create_new_confirmed=True)
+        self.assertNotEqual(other['competition_id'], first['competition_id'])
+        self.assertEqual(len(self.store.competitions()), 2)
+
+    def test_matching_does_not_cross_edition_or_unrelated_titles(self):
+        self.confirm(self.upload(), name='“慧科杯”AI创新大赛')
+        self.assertEqual(self.store.match_competitions('2027年“慧科杯”AI创新大赛', '2027'), [])
+        self.assertEqual(self.store.match_competitions('移动杯AI素养赛', '2026'), [])
+
+    def test_event_cup_nickname_is_also_a_candidate(self):
+        first = self.confirm(self.upload(), name='浙江广厦建设职业技术大学“慧科杯”AI创新大赛')
+        self.assertEqual([item['id'] for item in self.store.match_competitions('慧科杯', '2026')],
+                         [first['competition_id']])
+
+    def test_missing_edition_still_suggests_matching_cup_without_auto_association(self):
+        first = self.confirm(self.upload(), name='浙江广厦建设职业技术大学“慧科杯”AI创新大赛')
+        matches = self.store.match_competitions('“慧科杯”AI创新大赛', '')
+        self.assertEqual([item['id'] for item in matches], [first['competition_id']])
+        poster = self.upload(pdf_bytes('A poster about AI applications.'))
+        with self.assertRaisesRegex(ValueError, '已有比赛'):
+            self.store.confirm({'upload_id': poster['upload_id'], 'title': 'Poster',
+                                'name': '“慧科杯”AI创新大赛', 'edition': '2026',
+                                'uploader': 'Test student'})
+
+    def test_short_exact_name_is_suggested_but_not_merged_automatically(self):
+        first = self.confirm(self.upload(), name='演示比赛')
+        self.assertEqual([item['id'] for item in self.store.match_competitions('演示比赛2026', '2026')],
+                         [first['competition_id']])
+
     def test_no_cross_competition_results(self):
         first = self.confirm(self.upload())
         other = self.confirm(self.upload(pdf_bytes('This contest is about astronomy.')), name='Competition B')
@@ -94,6 +166,112 @@ class StoreTests(unittest.TestCase):
         self.assertTrue(self.store.search(first['competition_id'], 'members'))
         with self.assertRaises(ValueError):
             self.store.search(None, 'members')
+
+    def test_overview_question_retrieves_notice_intro_without_word_overlap(self):
+        result = self.confirm(self.upload(), title='关于举办慧科杯的通知')
+        poster = self.confirm(self.upload(pdf_bytes('Poster OCR noise.')), title='赛道海报')
+        with self.store.db() as db:
+            db.execute('UPDATE chunks SET heading=?, text=? WHERE document_id=?',
+                       ('赛事说明', '本届慧科杯面向在校生开展创新作品展示。', result['document_id']))
+            db.execute('UPDATE chunks SET heading=?, text=? WHERE document_id=?',
+                       ('', '扫码后联系老师。', poster['document_id']))
+        hits = self.store.search(result['competition_id'], '这是什么比赛')
+        self.assertTrue(any('本届慧科杯' in hit['text'] for hit in hits))
+        self.assertNotIn(poster['document_id'], {hit['document_id'] for hit in hits})
+        self.assertEqual(self.store.search(result['competition_id'], '学分兑换办法？'), [])
+
+    def test_track_question_excludes_other_track_but_keeps_common_notice(self):
+        common = self.confirm(self.upload())
+        ai_doc = self.confirm(self.upload(pdf_bytes('AI agent submission deadline.')),
+                              track='仅 AI 智能体应用赛')
+        pbl_doc = self.confirm(self.upload(pdf_bytes('PBL submission deadline.')),
+                               track='仅 PBL 项目开发赛')
+        with self.store.db() as db:
+            for document in (common, ai_doc, pbl_doc):
+                db.execute('UPDATE chunks SET text=? WHERE document_id=?',
+                           ('提交材料 截止时间', document['document_id']))
+        hits = self.store.search(common['competition_id'], 'AI智能体赛道提交材料')
+        ids = {hit['document_id'] for hit in hits}
+        self.assertIn(common['document_id'], ids)
+        self.assertIn(ai_doc['document_id'], ids)
+        self.assertNotIn(pbl_doc['document_id'], ids)
+        all_hits = self.store.search(common['competition_id'], '提交材料')
+        self.assertIn(pbl_doc['document_id'], {hit['document_id'] for hit in all_hits})
+
+    def test_unindexed_requested_track_does_not_retrieve_other_track(self):
+        pbl_doc = self.confirm(self.upload(pdf_bytes('PBL submission deadline.')),
+                               track='仅 PBL 项目开发赛')
+        with self.store.db() as db:
+            db.execute('UPDATE chunks SET text=? WHERE document_id=?',
+                       ('智能体提交材料截止时间', pbl_doc['document_id']))
+        self.assertEqual(self.store.search(pbl_doc['competition_id'], '智能体提交材料截止时间'), [])
+
+    def test_one_notice_with_explicit_track_headings_keeps_each_section_scoped(self):
+        result = self.confirm(self.upload())
+        pages = ['一、通用要求\n队伍人数为一至五人。\n二、AI智能体应用赛\nAI智能体提交日期为八月二十二日。'
+                 '\n三、PBL项目开发赛\nPBL提交日期为八月十八日。']
+        with self.store.db() as db:
+            self.store._index_document(db, result['document_id'], result['competition_id'], pages)
+        blocks = self.store.chunks(result['document_id'])
+        self.assertTrue(any('智能体' in block['track'] for block in blocks))
+        self.assertTrue(any('PBL' in block['track'] for block in blocks))
+        hits = self.store.search(result['competition_id'], 'AI智能体赛道提交日期')
+        self.assertTrue(any('二十二日' in hit['text'] for hit in hits))
+        self.assertFalse(any('十八日' in hit['text'] for hit in hits))
+
+    def test_legacy_chunks_without_scope_are_classified_at_retrieval(self):
+        result = self.confirm(self.upload())
+        ai_doc = self.confirm(self.upload(pdf_bytes('AI submission date.')),
+                              track='仅 AI 智能体应用赛')
+        with self.store.db() as db:
+            db.execute("UPDATE chunks SET track='', heading='PBL项目开发赛', text='PBL提交日期为八月十八日' "
+                       'WHERE document_id=?', (result['document_id'],))
+            db.execute("UPDATE chunks SET text='AI智能体提交日期为八月二十二日' WHERE document_id=?",
+                       (ai_doc['document_id'],))
+        hits = self.store.search(result['competition_id'], 'AI智能体赛道提交日期')
+        self.assertEqual({hit['document_id'] for hit in hits}, {ai_doc['document_id']})
+
+    def test_mixed_notice_cannot_be_marked_as_one_track_for_the_whole_file(self):
+        with patch('store.extract_document', return_value=(
+                ['AI智能体应用赛提交链接。PBL项目开发赛提交方案。'], {})):
+            upload = self.upload()
+        with self.assertRaisesRegex(ValueError, '多个赛道'):
+            self.confirm(upload, track='仅 AI 智能体应用赛')
+        result = self.confirm(upload, track='')
+        self.assertEqual(len(self.store.documents(result['competition_id'])), 1)
+
+    def test_website_answer_does_not_call_unfiltered_shared_agent(self):
+        first = self.confirm(self.upload())
+        self.confirm(self.upload(pdf_bytes('A second contest.')), name='Competition B')
+        expected = {'answer': '人数为 1-5 人。', 'citations': [], 'status': 'found'}
+        with patch('ai.configured', return_value=True), \
+                patch('ai.grounded_answer', return_value=expected) as grounded, \
+                patch('store.clients.agent_client.configured', return_value=True), \
+                patch('store.clients.agent_client.ask') as shared_agent:
+            answer = self.store.answer(first['competition_id'], 'members')
+        self.assertEqual(answer['mode'], 'grounded')
+        self.assertEqual({item['document_id'] for item in grounded.call_args.args[2]},
+                         {first['document_id']})
+        shared_agent.assert_not_called()
+
+    def test_grounded_followup_uses_only_owners_current_competition_history(self):
+        first = self.confirm(self.upload())
+        other = self.confirm(self.upload(pdf_bytes('Other contest.')), name='Competition B')
+        expected = {'answer': '见原文。', 'citations': [], 'status': 'found'}
+        with patch('ai.configured', return_value=True), \
+                patch('ai.grounded_answer', return_value=expected) as grounded:
+            one = self.store.answer(first['competition_id'], 'members', owner_id='owner-a')
+            two = self.store.answer(first['competition_id'], '那材料呢', owner_id='owner-a')
+            other_owner = self.store.answer(first['competition_id'], '那材料呢', owner_id='owner-b')
+            other_comp = self.store.answer(other['competition_id'], '那材料呢', owner_id='owner-a')
+            self.store.reset_conversation('owner-a', first['competition_id'])
+            after_reset = self.store.answer(first['competition_id'], '那材料呢', owner_id='owner-a')
+        self.assertFalse(one['continued'])
+        self.assertTrue(two['continued'])
+        self.assertIn('members', grounded.call_args_list[1].args[0])
+        self.assertFalse(other_owner['continued'])
+        self.assertFalse(other_comp['continued'])
+        self.assertFalse(after_reset['continued'])
 
     def test_invalid_input_cannot_create_orphan_competition(self):
         with self.assertRaises(ValueError):
@@ -196,31 +374,26 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(len(self.store.documents(result['competition_id'])), 1)
         self.assertTrue(self.store.search(result['competition_id'], 'members'))
 
-    def test_answer_uses_published_agent(self):
+    def test_without_grounded_model_does_not_use_shared_agent(self):
         result = self.confirm(self.upload())
-        reply = {'answer': '人数为 1-5 人。',
-                 'quotes': [{'index': 1, 'name': 'a.md', 'url': 'https://example.com'}],
-                 'elapsed': 1.2}
         with patch('store.clients.agent_client.configured', return_value=True), \
-                patch('store.clients.agent_client.ask', return_value=reply) as asked:
+                patch('store.clients.agent_client.ask') as asked:
             answer = self.store.answer(result['competition_id'], 'members')
-        self.assertEqual(answer['mode'], 'agent')
-        self.assertEqual(answer['answer'], '人数为 1-5 人。')
-        self.assertEqual(answer['quotes'][0]['name'], 'a.md')
-        self.assertTrue(answer['hits'])            # 本地原文片段仍然照给
-        self.assertEqual(asked.call_args[0][0], 'members')
-        # 必须带上"当前比赛"，否则智能体会拿别的比赛资料回答。
-        self.assertIn('Competition A', asked.call_args[1]['competition'])
+        self.assertEqual(answer['mode'], 'keyword_evidence')
+        self.assertTrue(answer['hits'])
+        asked.assert_not_called()
 
-    def test_answer_reports_agent_failure_without_faking(self):
+    def test_grounded_answer_failure_is_reported_without_using_shared_agent(self):
         result = self.confirm(self.upload())
-        with patch('store.clients.agent_client.configured', return_value=True), \
-                patch('store.clients.agent_client.ask', side_effect=ValueError('网络不可达')):
+        with patch('ai.configured', return_value=True), \
+                patch('ai.grounded_answer', side_effect=ValueError('网络不可达')), \
+                patch('store.clients.agent_client.ask') as shared_agent:
             answer = self.store.answer(result['competition_id'], 'members')
-        self.assertEqual(answer['mode'], 'agent_failed')
+        self.assertEqual(answer['mode'], 'grounded_failed')
         self.assertIsNone(answer['answer'])
         self.assertIn('网络不可达', answer['agent_error'])
         self.assertTrue(answer['hits'])
+        shared_agent.assert_not_called()
 
     def test_pending_documents_are_pushed_without_clicking(self):
         result = self.confirm(self.upload())
@@ -272,6 +445,40 @@ class CitationTests(unittest.TestCase):
         self.assertEqual(result['citations'][0]['page'], 2)
 
 
+class EvidenceScopeTests(unittest.TestCase):
+    def test_legacy_unspecified_scope_is_not_treated_as_a_track(self):
+        self.assertEqual(evidence_scope.key('赛道范围未单独标注'), '')
+        self.assertEqual(evidence_scope.block_track('PBL项目开发赛', '提交材料',
+                         '赛道范围未单独标注'), 'PBL 项目开发赛')
+
+    def test_explicit_track_is_selected_even_without_documents_for_it(self):
+        self.assertEqual(evidence_scope.question_track('AI智能体赛道要交什么？',
+                         ['仅 PBL 项目开发赛']), 'ai-agent')
+        self.assertEqual(evidence_scope.question_track('PBL材料是什么？',
+                         ['仅 AI 智能体应用赛']), 'pbl')
+        self.assertIsNone(evidence_scope.question_track('AI智能体赛道和PBL赛道有什么区别？',
+                          ['仅 AI 智能体应用赛']))
+
+    def test_contest_title_with_ai_does_not_select_ai_track(self):
+        tracks = ['仅 AI 智能体应用赛', '仅 PBL 项目开发赛']
+        self.assertIsNone(evidence_scope.question_track('AI创新大赛什么时候截止？', tracks))
+        self.assertEqual(evidence_scope.question_track('PBL材料是什么？', tracks), 'pbl')
+
+    def test_confirmed_ai_track_alias_matches_explicit_ai_agent_question(self):
+        tracks = ['AI智能应用赛道', '仅 PBL 项目开发赛']
+        self.assertEqual(evidence_scope.question_track('AI智能体赛道的材料？', tracks), 'ai-agent')
+        self.assertTrue(evidence_scope.permits('AI 智能体应用赛', 'ai-agent'))
+
+    def test_unambiguous_track_name_in_body_scopes_unheaded_excerpt(self):
+        self.assertEqual(evidence_scope.block_track('', 'AI智能体应用赛提交作品链接。'),
+                         'AI 智能体应用赛')
+        self.assertEqual(evidence_scope.block_track('', 'AI智能体应用赛和PBL项目开发赛均可报名。'),
+                         '多赛道混合，待核对')
+        self.assertEqual(evidence_scope.block_track('AI智能体应用赛',
+                         'AI智能体应用赛与PBL项目开发赛时间不同。'), '多赛道混合，待核对')
+        self.assertFalse(evidence_scope.permits('多赛道混合，待核对', 'ai-agent'))
+
+
 class PushDocumentTests(unittest.TestCase):
     """push_document 只负责判断状态；测试里一律不联网。"""
 
@@ -318,9 +525,11 @@ class PushDocumentTests(unittest.TestCase):
     def test_skips_before_uploading_when_name_exists(self):
         with patch('adp.settings', return_value=self.base), \
                 patch('adp.existing_document_names', return_value={'a.md'}), \
+                patch('adp.describe_documents', return_value=[{'name':'a.md','doc_id':'existing'}]), \
                 patch('adp.api_call') as api:
             outcome = adp.push_document(b'# x', 'a.md')
         self.assertEqual(outcome['status'], 'duplicate')
+        self.assertEqual(outcome['doc_id'],'existing')
         self.assertFalse(api.called)           # 连上传都不做，省一次白传
 
 
@@ -466,7 +675,7 @@ class EmptyAnswerTests(unittest.TestCase):
 
 
 class ConversationTests(unittest.TestCase):
-    """连续追问：同一个浏览器 + 同一场比赛共用一个会话；换人或换比赛都不共享。"""
+    """The published-agent adapter still maintains isolated sessions for profile calls."""
 
     OWNER = 'a' * 32
 
@@ -499,32 +708,38 @@ class ConversationTests(unittest.TestCase):
         return self.store.confirm({'upload_id': upload['upload_id'], 'title': 'Notice', 'name': name,
                                    'edition': '2026', 'uploader': '张三', 'role': 'student'})
 
+    def ask(self, cid, question, owner_id=None):
+        with self.store.db() as db:
+            competition = dict(db.execute('SELECT id,name,edition FROM competitions WHERE id=?',
+                                          (cid,)).fetchone())
+        return self.store._agent_answer([], competition, question, owner_id)
+
     def test_follow_up_reuses_the_same_conversation(self):
         first = self.competition()
-        self.store.answer(first['competition_id'], '人数?', owner_id=self.OWNER)
-        second = self.store.answer(first['competition_id'], '那材料呢?', owner_id=self.OWNER)
+        self.ask(first['competition_id'], '人数?', owner_id=self.OWNER)
+        second = self.ask(first['competition_id'], '那材料呢?', owner_id=self.OWNER)
         self.assertEqual(self.calls, [None, 'conv-1'])       # 第二次带着第一次的会话
         self.assertTrue(second['continued'])
 
     def test_other_user_does_not_share_the_conversation(self):
         first = self.competition()
-        self.store.answer(first['competition_id'], '人数?', owner_id=self.OWNER)
-        other = self.store.answer(first['competition_id'], '人数?', owner_id='b' * 32)
+        self.ask(first['competition_id'], '人数?', owner_id=self.OWNER)
+        other = self.ask(first['competition_id'], '人数?', owner_id='b' * 32)
         self.assertEqual(self.calls, [None, None])            # 别人拿到的是新会话
         self.assertFalse(other['continued'])
 
     def test_switching_competition_does_not_share_the_conversation(self):
         first = self.competition()
         second = self.competition('Competition B')
-        self.store.answer(first['competition_id'], '人数?', owner_id=self.OWNER)
-        self.store.answer(second['competition_id'], '人数?', owner_id=self.OWNER)
+        self.ask(first['competition_id'], '人数?', owner_id=self.OWNER)
+        self.ask(second['competition_id'], '人数?', owner_id=self.OWNER)
         self.assertEqual(self.calls, [None, None])
 
     def test_new_session_only_resets_this_competition(self):
         first = self.competition()
         second = self.competition('Competition B')
-        self.store.answer(first['competition_id'], '人数?', owner_id=self.OWNER)
-        self.store.answer(second['competition_id'], '人数?', owner_id=self.OWNER)
+        self.ask(first['competition_id'], '人数?', owner_id=self.OWNER)
+        self.ask(second['competition_id'], '人数?', owner_id=self.OWNER)
         self.store.reset_conversation(self.OWNER, first['competition_id'])
         self.assertIsNone(self.store.conversation_id(self.OWNER, first['competition_id']))
         self.assertEqual(self.store.conversation_id(self.OWNER, second['competition_id']), 'conv-2')
@@ -534,7 +749,7 @@ class ConversationTests(unittest.TestCase):
         self.store.remember_conversation(self.OWNER, first['competition_id'], 'stale-session')
         replies = [agent.SessionExpired('ConversationId invalid'), self.reply('人数?')]
         with patch('store.clients.agent_client.ask', side_effect=replies) as asked:
-            answer = self.store.answer(first['competition_id'], '人数?', owner_id=self.OWNER)
+            answer = self.ask(first['competition_id'], '人数?', owner_id=self.OWNER)
         self.assertEqual(asked.call_count, 2)                 # 只重试一次
         self.assertEqual(asked.call_args_list[0][1]['conversation_id'], 'stale-session')
         self.assertIsNone(asked.call_args_list[1][1]['conversation_id'])
@@ -548,7 +763,7 @@ class ConversationTests(unittest.TestCase):
         self.store.remember_conversation(self.OWNER, first['competition_id'], 'stale-session')
         with patch('store.clients.agent_client.ask',
                    side_effect=agent.SessionExpired('ConversationId expired')) as asked:
-            answer = self.store.answer(first['competition_id'], '人数?', owner_id=self.OWNER)
+            answer = self.ask(first['competition_id'], '人数?', owner_id=self.OWNER)
         self.assertEqual(asked.call_count, 2)                 # 不会无限重试
         self.assertEqual(answer['mode'], 'agent_failed')
         self.assertIsNone(answer['answer'])
@@ -556,8 +771,8 @@ class ConversationTests(unittest.TestCase):
 
     def test_without_owner_every_question_stands_alone(self):
         first = self.competition()
-        self.store.answer(first['competition_id'], '人数?')
-        self.store.answer(first['competition_id'], '那材料呢?')
+        self.ask(first['competition_id'], '人数?')
+        self.ask(first['competition_id'], '那材料呢?')
         self.assertEqual(self.calls, [None, None])
 
 

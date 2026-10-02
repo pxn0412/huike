@@ -9,15 +9,19 @@ import re
 import secrets
 import shutil
 import sqlite3
+import unicodedata
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
-from parsing import extract, suggest
+from parsing import extract_document, suggest
+from document_formats import mime_type, location_kind
 import ai
 import chunking
 import clients
+import evidence_scope
+import document_updates
 
 # v1 = 只有 hash，知识库状态塞在 metadata.knowledge_base 里；
 # v2 = source/indexed 双哈希 + document_status + kb_* 列（单一来源，不再写 metadata.knowledge_base）。
@@ -76,6 +80,33 @@ def default_name(kind, account):
         return (account.split('@')[0] or '同学')[:40]
     return '同学' + account[-4:]
 
+
+def normalized_competition_name(value):
+    """Compare display names without spaces, punctuation, or the edition year."""
+    value = unicodedata.normalize('NFKC', str(value or '')).casefold()
+    value = re.sub(r'20\d{2}\s*[年届]?', '', value)
+    return ''.join(char for char in value if char.isalnum())
+
+
+def normalized_edition(value):
+    value = unicodedata.normalize('NFKC', str(value or '')).strip()
+    year = re.search(r'20\d{2}', value)
+    return year.group() if year else value.casefold()
+
+
+def cup_name_tokens(value):
+    """Distinctive short names such as 慧科杯, even inside a longer official title."""
+    name = normalized_competition_name(value)
+    tokens = set()
+    for position, char in enumerate(name):
+        if char != '杯':
+            continue
+        for length in range(3, 7):
+            token = name[position-length+1:position+1]
+            if len(token) == length and all('\u4e00' <= letter <= '\u9fff' for letter in token):
+                tokens.add(token)
+    return tokens
+
 # documents 表的列定义只写一次：建表与重建共用，避免迁移和正常建表漂移。
 DOCUMENTS_DDL = '''
     id TEXT PRIMARY KEY, competition_id TEXT NOT NULL,
@@ -119,6 +150,12 @@ class Store:
                     session_owner_id TEXT NOT NULL, competition_id TEXT NOT NULL,
                     conversation_id TEXT NOT NULL, updated_at TEXT,
                     PRIMARY KEY (session_owner_id, competition_id));
+                CREATE TABLE IF NOT EXISTS qa_turns (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    owner_id TEXT NOT NULL, competition_id TEXT NOT NULL,
+                    question TEXT NOT NULL, answer TEXT NOT NULL, created_at TEXT);
+                CREATE INDEX IF NOT EXISTS idx_qa_turns_owner_competition
+                    ON qa_turns(owner_id, competition_id, id);
                 -- 学生画像（初赛版：一份画像 + 展示开关，不做版本历史）
                 CREATE TABLE IF NOT EXISTS profiles (
                     owner_id TEXT PRIMARY KEY, payload TEXT,
@@ -145,6 +182,7 @@ class Store:
                     name TEXT NOT NULL, owner_id TEXT NOT NULL, created_at TEXT);
                 CREATE INDEX IF NOT EXISTS idx_chunks_document ON chunks(document_id);
                 CREATE INDEX IF NOT EXISTS idx_chunks_competition ON chunks(competition_id);
+                {document_updates.DDL}
             ''')
             for table in ('uploads', 'documents'):
                 fields = {row['name'] for row in db.execute(f'PRAGMA table_info({table})')}
@@ -247,12 +285,10 @@ class Store:
         db.execute("UPDATE documents SET document_status='current' "
                    "WHERE id=? AND document_status='candidate'", (document_id,))
 
-    def upload(self, filename, content):
-        if not filename.lower().endswith('.pdf') or not content.startswith(b'%PDF-'):
-            raise ValueError('请选择有效的 PDF 文件。')
-        if len(content) > 20 * 1024 * 1024:
-            raise ValueError('PDF 不能超过 20 MB。')
-        pages, metadata = extract(content, self.use_ocr)
+    def upload(self, filename, content, progress=None):
+        pages, metadata = extract_document(filename, content, self.use_ocr, progress=progress)
+        if progress:
+            progress({'stage': 'identifying'})
         suggestions = suggest(filename, pages)
         method = 'filename_only'
         if ai.configured() and any(p.strip() for p in pages):
@@ -274,7 +310,31 @@ class Store:
         return {'upload_id': uid, 'filename': filename, 'page_count': len(pages),
                 'has_text': any(p.strip() for p in pages),
                 'suggested': suggestions, 'metadata': metadata,
-                'extraction_method': method, 'preview_url': f'/api/uploads/{uid}/file'}
+                'extraction_method': method, 'preview_url': f'/api/uploads/{uid}/file',
+                'competition_matches': self.match_competitions(
+                    suggestions.get('name'), suggestions.get('edition'))}
+
+    def match_competitions(self, name, edition):
+        """Find likely existing editions; never silently merge different titles."""
+        needle = normalized_competition_name(name)
+        year = normalized_edition(edition)
+        if not year:
+            year_in_name = re.search(r'20\d{2}', str(name or ''))
+            year = year_in_name.group() if year_in_name else ''
+        cups = cup_name_tokens(name)
+        if not needle:
+            return []
+        matches = []
+        with self.db() as db:
+            for row in db.execute('SELECT id,name,edition FROM competitions'):
+                if year and normalized_edition(row['edition']) != year:
+                    continue
+                existing = normalized_competition_name(row['name'])
+                if existing == needle or (min(len(existing), len(needle)) >= 7
+                                          and (existing in needle or needle in existing)) \
+                        or cups.intersection(cup_name_tokens(row['name'])):
+                    matches.append(dict(row))
+        return sorted(matches, key=lambda item: item['name'])
 
     def cancel(self, uid):
         with self.db() as db:
@@ -284,6 +344,7 @@ class Store:
         title = str(data.get('title', '')).strip()
         name = str(data.get('name', '')).strip()
         edition = str(data.get('edition', '')).strip()
+        track_scope = str(data.get('track', '')).strip()
         uploader = str(data.get('uploader', '')).strip()
         role = data.get('role') or 'user'
         date = str(data.get('published_at', '')).strip()
@@ -301,14 +362,22 @@ class Store:
             upload = db.execute('SELECT * FROM uploads WHERE id = ?', (data.get('upload_id'),)).fetchone()
             if not upload:
                 raise ValueError('临时上传已失效，请重新上传。')
+            if evidence_scope.key(track_scope) and len(evidence_scope.named_tracks(
+                    '\n'.join(json.loads(upload['pages'])))) > 1:
+                raise ValueError('这份资料同时涉及多个赛道，请将整份资料的适用赛道留空。')
             if cid:
                 if not db.execute('SELECT id FROM competitions WHERE id=?', (cid,)).fetchone():
                     raise ValueError('所选比赛不存在，请重新选择。')
             else:
                 existing = db.execute('SELECT id FROM competitions WHERE name=? AND edition=?', (name, edition)).fetchone()
-                cid = existing['id'] if existing else uuid.uuid4().hex
-                if not existing:
-                    db.execute('INSERT INTO competitions VALUES (?,?,?)', (cid, name, edition))
+                if existing:
+                    raise ValueError('这场比赛已经存在，请明确选择已有比赛后再提交资料。')
+                if not data.get('create_new_confirmed'):
+                    matches = self.match_competitions(name, edition)
+                    if matches:
+                        raise ValueError('找到可能的已有比赛，请选择已有比赛；若确为另一场比赛，请确认创建新比赛。')
+                cid = uuid.uuid4().hex
+                db.execute('INSERT INTO competitions VALUES (?,?,?)', (cid, name, edition))
             duplicate = db.execute('SELECT id FROM documents WHERE competition_id=? AND source_content_hash=?',
                                    (cid, upload['hash'])).fetchone()
             if duplicate:
@@ -323,16 +392,23 @@ class Store:
                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'candidate',?,?)''', (
                 did, cid, upload['filename'], title, str(data.get('publisher', '')).strip(), date,
                 datetime.now(timezone.utc).isoformat(), uploader, role, owner,
-                str(data.get('track', '')).strip(), upload['content'], upload['hash'],
+                track_scope, upload['content'], upload['hash'],
                 upload['pages'], did, upload['metadata']))
             # 第一批还没有资料关系，所以新资料确认后立刻成为 current；
             # 声明为“新版本”的资料会停在 candidate，等平台侧切换成功才提升。
-            self._promote_unclaimed(db, did)
+            update_id = None
+            if data.get('update_mode') or db.execute('SELECT 1 FROM document_updates WHERE competition_id=?', (cid,)).fetchone():
+                update_id = document_updates.prepare(db, data, did, cid)
+            else:
+                self._promote_unclaimed(db, did)
             db.execute('DELETE FROM uploads WHERE id=?', (upload['id'],))
             chunk_count = self._index_document(db, did, cid, json.loads(upload['pages']),
-                                               str(data.get('track', '')).strip(),
+                                               track_scope,
                                                json.loads(upload['metadata'] or '{}'))
         # 本地入库成功后，把这份资料自动送进 ADP 知识库（失败只记状态，不影响本地入库）。
+        if update_id:
+            return {'competition_id': cid, 'document_id': did, 'duplicate': False,
+                    'chunk_count': chunk_count, 'update_id': update_id}
         knowledge_base = self.sync_knowledge_base(did)
         return {'competition_id': cid, 'document_id': did, 'duplicate': False,
                 'chunk_count': chunk_count, 'knowledge_base': knowledge_base}
@@ -343,7 +419,7 @@ class Store:
                 FROM competitions c LEFT JOIN documents d ON d.competition_id=c.id
                 GROUP BY c.id ORDER BY c.name, c.edition DESC''')]
 
-    def documents(self, cid):
+    def documents(self, cid, owner_id=None):
         with self.db() as db:
             rows = db.execute('''SELECT d.id, d.competition_id, d.filename, d.title, d.publisher,
                 d.published_at, d.uploaded_at, d.uploader_name, d.uploader_role,
@@ -359,6 +435,13 @@ class Store:
                 pages = json.loads(item.pop('pages'))
                 item['metadata'] = json.loads(item['metadata'])
                 item.update(page_count=len(pages), has_text=any(p.strip() for p in pages))
+                item['updates'] = document_updates.summary(db,item['id'])
+                pending = db.execute('SELECT id,status,message,actor,created_at,mode FROM document_updates WHERE new_document_id=? ORDER BY created_at DESC LIMIT 1', (item['id'],)).fetchone()
+                item['update_operation'] = {k:pending[k] for k in ('id','status','message','created_at','mode')} if pending else None
+                if pending:
+                    item['update_operation']['can_retry'] = bool(owner_id and pending['actor']==owner_id)
+                projection = db.execute('SELECT 1 FROM document_updates WHERE competition_id=?', (cid,)).fetchone()
+                item['uses_current_evidence'] = bool(projection)
                 result.append(item)
             return result
 
@@ -368,12 +451,25 @@ class Store:
             row = db.execute(f'SELECT content FROM {table} WHERE id=?', (uid,)).fetchone()
             return bytes(row['content']) if row else None
 
+    def preview(self, kind, uid):
+        table = 'uploads' if kind == 'uploads' else 'documents'
+        with self.db() as db:
+            row = db.execute(f'SELECT filename,pages,metadata FROM {table} WHERE id=?', (uid,)).fetchone()
+            if not row:
+                return None
+            return {'filename': row['filename'], 'mime_type': mime_type(row['filename']),
+                    'location_kind': location_kind(row['filename']), 'pages': json.loads(row['pages']),
+                    'metadata': json.loads(row['metadata'] or '{}')}
+
     def sync_knowledge_base(self, document_id):
         """把一份资料按同一套规则切成块，送进 ADP 知识库。
 
         自动上传失败不能影响本地已保存的资料：这里只记录状态，不抛异常。
         """
         with self.db() as db:
+            check = db.execute('SELECT competition_id FROM documents WHERE id=?',(document_id,)).fetchone()
+            if check and db.execute('SELECT 1 FROM document_updates WHERE competition_id=?',(check['competition_id'],)).fetchone():
+                return {'status':'skipped','message':'此比赛由当前依据统一同步，请查看资料更新状态；不会重新上传旧规则。'}
             row = db.execute('SELECT * FROM documents WHERE id=?', (document_id,)).fetchone()
             if not row:
                 raise ValueError('资料不存在。')
@@ -381,7 +477,12 @@ class Store:
                                      (row['competition_id'],)).fetchone()
             pages = json.loads(row['pages'])
             metadata = json.loads(row['metadata'] or '{}')
-            blocks = chunking.build_blocks([(number, text) for number, text in enumerate(pages, 1)])
+            # Reuse the saved local chunks, including legacy chunks, so remote/local evidence agrees.
+            blocks = [dict(item) for item in db.execute(
+                'SELECT label AS chunk_id,page,page_end,heading,text FROM chunks WHERE document_id=? ORDER BY seq',
+                (document_id,))]
+            for block in blocks:
+                block['track'] = None
             if not blocks:
                 outcome = {'status': 'skipped', 'doc_id': '',
                            'message': '这份资料没有可切分的正文（可能是扫描页）'}
@@ -396,7 +497,8 @@ class Store:
                       ('发布时间', row['published_at'] or '未标注')]
             if row['track']:
                 header.append(('适用赛道', row['track']))
-            content = chunking.render_markdown(blocks, row['title'], header).encode('utf-8')
+            content = chunking.render_markdown(blocks, row['title'], header,
+                                               location_kind(row['filename']), row['track'] or '').encode('utf-8')
             indexed_hash = hashlib.sha256(content).hexdigest()
             filename = self._knowledge_base_filename(row['competition_id'], document_id, indexed_hash)
             outcome = clients.knowledge_base.push(content, filename)
@@ -416,7 +518,7 @@ class Store:
         返回需要补传的资料 ID 列表；服务启动时会在后台跑一次，不需要人工点。
         """
         with self.db() as db:
-            pending = [row['id'] for row in db.execute('SELECT id, kb_status FROM documents')
+            pending = [row['id'] for row in db.execute("SELECT id,kb_status FROM documents WHERE document_status='current' AND competition_id NOT IN (SELECT competition_id FROM document_updates)")
                        if row['kb_status'] not in ('uploaded', 'duplicate')]
         for document_id in pending[:limit]:
             try:
@@ -451,6 +553,17 @@ class Store:
                 terms.update(synonyms)
         return terms
 
+    @staticmethod
+    def _overview_question(query):
+        """A broad introduction question needs the opening notice, not word overlap."""
+        question = re.sub(r'\s+', '', str(query or ''))
+        if any(topic in question for topic in ('报名', '资格', '条件', '人数', '组队', '截止',
+                                               '时间', '地点', '材料', '提交', '赛道', '培训',
+                                               '获奖', '奖项', '指导老师')):
+            return False
+        return any(noun in question for noun in ('比赛', '大赛', '赛事', '竞赛')) and any(
+            phrase in question for phrase in ('什么', '介绍', '简介', '概况', '干什么', '做什么'))
+
     def _index_document(self, db, document_id, competition_id, pages, track='', metadata=None):
         """把入库正文按规则切成块写进 chunks；切块异常时退回整页块，不影响入库。"""
         pairs = [(number, str(text)) for number, text in enumerate(pages, 1)]
@@ -470,7 +583,8 @@ class Store:
             page = int(block.get('page') or 1)
             page_end = int(block.get('page_end') or page)
             rows.append((f'{document_id}:{label}', document_id, competition_id, seq, label, page, page_end,
-                         str(block.get('heading') or ''), track or str(block.get('track') or ''),
+                         str(block.get('heading') or ''), evidence_scope.block_track(
+                             block.get('heading'), block.get('text'), track),
                          1 if any(number in ocr_pages for number in range(page, page_end + 1)) else 0,
                          len(str(block.get('text') or '')), str(block.get('text') or ''), source))
         db.execute('DELETE FROM chunks WHERE document_id=?', (document_id,))
@@ -488,38 +602,61 @@ class Store:
                 FROM chunks WHERE document_id=? ORDER BY seq''', (document_id,))
             return [dict(row) for row in rows]
 
-    def search(self, cid, query):
+    def search(self, cid, query, previous_query=''):
         if not cid:
             raise ValueError('请先选择比赛。')
         query = str(query).strip()
         if not query or len(query) > 1000:
             raise ValueError('请输入 1 至 1000 字的检索内容。')
         # Transparent keyword evidence lookup; never presented as an AI answer.
-        terms = self._terms(query)
+        terms = self._terms(query + ' ' + previous_query)
+        overview = self._overview_question(query)
         hits = []
         with self.db() as db:
-            rows = db.execute('''SELECT c.seq, c.label, c.page, c.page_end, c.heading, c.track,
-                    c.ocr, c.text, d.id document_id, d.title
-                FROM chunks c JOIN documents d ON d.id = c.document_id
-                WHERE c.competition_id=?''', (cid,))
+            fetched = document_updates.effective(db,cid)
+            rows = [{**dict(row), 'track': evidence_scope.block_track(
+                row['heading'], row['text'], row['track'])} for row in fetched]
+            requested_track = evidence_scope.question_track(query, {row['track'] for row in rows})
+            has_notice = overview and any('通知' in row['title'] and row['text'].strip()
+                                          and evidence_scope.permits(row['track'], requested_track)
+                                          for row in rows)
             for row in rows:
+                if not evidence_scope.permits(row['track'], requested_track):
+                    continue
                 text = row['text'].lower()
                 heading = (row['heading'] or '').lower()
-                matched = {term for term in terms if term in text}
-                if not matched:
-                    continue
-                # 命中词的种类比单词重复次数更能说明这段是答案所在。
-                score = len(matched) * 3 + sum(text.count(term) for term in terms) \
-                    + 2 * sum(1 for term in terms if term in heading)
+                if overview:
+                    # First paragraphs and purpose/overview sections explain the event.
+                    # A generic question such as “这是什么比赛” shares no literal terms
+                    # with many official notices, so ordinary keyword search returns 0.
+                    if has_notice and '通知' not in row['title']:
+                        continue
+                    if row['seq'] > 3 and not any(word in heading for word in
+                                                   ('宗旨', '简介', '概况', '介绍', '赛事说明')):
+                        continue
+                    score = (20 if '通知' in row['title'] else 0) + (10 if row['seq'] == 1 else 0) \
+                        + (8 if any(word in heading for word in
+                                    ('宗旨', '简介', '概况', '介绍', '赛事说明')) else 0) - row['seq']
+                else:
+                    matched = {term for term in terms if term in text}
+                    if not matched:
+                        continue
+                    # 命中词的种类比单词重复次数更能说明这段是答案所在。
+                    score = len(matched) * 3 + sum(text.count(term) for term in terms) \
+                        + 2 * sum(1 for term in terms if term in heading)
                 hits.append({'document_id': row['document_id'], 'title': row['title'],
+                             'location_kind': location_kind(row['filename']),
                              'page': row['page'], 'page_end': row['page_end'], 'chunk': row['label'],
-                             'heading': row['heading'], 'text': row['text'], 'score': score,
+                             'heading': row['heading'], 'text': row['text'], 'original_text': row.get('original_text',row['text']), 'score': score,
                              'track': row['track'], 'ocr': bool(row['ocr'])})
         return sorted(hits, key=lambda h: h['score'], reverse=True)[:5]
 
     def answer(self, cid, query, owner_id=None, context=None):
-        """回答。owner_id 是服务端签发的匿名身份：同一身份在同一场比赛里的追问接成一段会话。"""
-        hits = self.search(cid, query)
+        """Answer with source text filtered before it reaches the model."""
+        history = self.recent_qa_turns(owner_id, cid) if owner_id else []
+        followup = bool(history and re.match(r'^(那|还|这个|这些|它|他们|如果|刚才|继续)',
+                                             str(query).strip()) and len(str(query)) <= 40)
+        hits = self.search(cid, query, previous_query=history[-1]['question'] if followup else '')
         # 页面上只展示"每份资料最相关的一块"；本地模型仍看全部命中，不削弱兜底回答。
         shown = per_document(hits)
         with self.db() as db:
@@ -527,14 +664,44 @@ class Store:
                                      (cid,)).fetchone()
         if not competition:
             raise ValueError('请先选择存在的比赛。')
-        # 优先走已发布的智能体：网页里的回答与评委扫码问到的是同一个。
-        if clients.agent_client.configured():
-            return self._agent_answer(shown, dict(competition), context or query, owner_id)
         if not ai.configured():
             return {'mode': 'keyword_evidence', 'hits': shown, 'answer': None}
         evidence = [{**hit, 'evidence_id': f'E{i+1}'} for i,hit in enumerate(hits)]
-        result = ai.grounded_answer(context or query, dict(competition), evidence)
-        return {'mode': 'ai', 'hits': shown, **result}
+        question_for_model = context or query
+        if followup:
+            preceding = '\n'.join(f"用户：{item['question']}\n助手：{item['answer']}"
+                                  for item in history)
+            question_for_model += ('\n【这场比赛的近期对话，仅用于理解追问；比赛事实仍须以本次原文为准】\n'
+                                   + preceding)
+        try:
+            result = ai.grounded_answer(question_for_model, dict(competition), evidence)
+        except ValueError as exc:
+            return {'mode': 'grounded_failed', 'hits': shown, 'answer': None,
+                    'agent_error': str(exc), 'quotes': []}
+        quotes = [{**item, 'index': index, 'used': True, 'name': item['title']}
+                  for index, item in enumerate(result.get('citations') or [], 1)]
+        if owner_id:
+            self.record_qa_turn(owner_id, cid, query, result['answer'])
+        return {'mode': 'grounded', 'hits': shown, 'continued': followup,
+                **result, 'quotes': quotes}
+
+    def recent_qa_turns(self, owner_id, competition_id):
+        if not owner_id or not competition_id:
+            return []
+        with self.db() as db:
+            rows = list(db.execute('''SELECT question,answer FROM qa_turns
+                WHERE owner_id=? AND competition_id=? ORDER BY id DESC LIMIT 3''',
+                (owner_id, competition_id)))
+        return [dict(row) for row in reversed(rows)]
+
+    def record_qa_turn(self, owner_id, competition_id, question, answer):
+        with self.db() as db:
+            db.execute('''INSERT INTO qa_turns(owner_id,competition_id,question,answer,created_at)
+                VALUES (?,?,?,?,?)''', (owner_id, competition_id, question, answer[:2000],
+                                        datetime.now(timezone.utc).isoformat()))
+            db.execute('''DELETE FROM qa_turns WHERE owner_id=? AND competition_id=? AND id NOT IN
+                (SELECT id FROM qa_turns WHERE owner_id=? AND competition_id=? ORDER BY id DESC LIMIT 3)''',
+                (owner_id, competition_id, owner_id, competition_id))
 
     def _agent_answer(self, hits, competition, query, owner_id):
         """比赛资料问答：带比赛范围提问，回答后把引用映射回本地资料。"""
@@ -620,6 +787,8 @@ class Store:
         with self.db() as db:
             db.execute('DELETE FROM agent_sessions WHERE session_owner_id=? AND competition_id=?',
                        (owner_id, competition_id))
+            db.execute('DELETE FROM qa_turns WHERE owner_id=? AND competition_id=?',
+                       (owner_id, competition_id))
         return {'competition_id': competition_id, 'reset': True}
 
     # ---- 引用映射：平台引用 → 本地资料（P9）--------------------------------
@@ -635,7 +804,7 @@ class Store:
             return []
         with self.db() as db:
             documents = [dict(row) for row in db.execute(
-                '''SELECT id, title, published_at, kb_doc_id, kb_file_name FROM documents
+                '''SELECT id, title, published_at, kb_doc_id, kb_file_name, filename FROM documents
                    WHERE competition_id=?''', (competition_id,))]
             mapped = []
             for quote in quotes:
@@ -645,7 +814,9 @@ class Store:
                 if document:
                     item.update(document_id=document['id'], title=document['title'],
                                 match=document['match'])
-                    page = self._unique_quote_page(db, document['id'], quote.get('quote_text') or '')
+                    kind = location_kind(document['filename'])
+                    item['location_kind'] = kind
+                    page = self._unique_quote_page(db, document['id'], quote.get('quote_text') or '') if kind == 'page' else None
                     if page:
                         item['page'] = page
                 mapped.append(item)
@@ -742,14 +913,14 @@ class Store:
         needle = self._normalize(quote_text)
         if len(needle) < 12:
             return None
-        rows = db.execute('SELECT page, text FROM chunks WHERE document_id=? ORDER BY seq',
+        rows = db.execute('SELECT page, page_end, text FROM chunks WHERE document_id=? ORDER BY seq',
                           (document_id,)).fetchall()
         for candidate in (needle, needle[:24] if len(needle) >= 24 else ''):
             if not candidate:
                 continue
             hits = [row for row in rows if candidate in self._normalize(row['text'])]
             if len(hits) == 1:
-                return hits[0]['page']
+                return hits[0]['page'] if hits[0]['page'] == hits[0]['page_end'] else None
             if hits:
                 return None      # 多处命中：不唯一，宁可不给页码
         return None

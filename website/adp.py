@@ -32,6 +32,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -264,7 +265,8 @@ def push_document(content, filename, tag=DEFAULT_TAG, chunk_length=DEFAULT_CHUNK
     file_type = Path(filename).suffix.lstrip('.').lower() or 'md'
     try:
         if filename in existing_document_names(kb_id, region):
-            return {'status': 'duplicate', 'doc_id': '',
+            doc_id = next((d['doc_id'] for d in describe_documents(kb_id,region) if d['name']==filename),'')
+            return {'status': 'duplicate', 'doc_id': doc_id,
                     'message': '知识库里已有同名文档，跳过上传。'}
     except ValueError:
         pass  # 查不到就继续走正常上传，由平台去重兜底
@@ -290,6 +292,38 @@ def push_document(content, filename, tag=DEFAULT_TAG, chunk_length=DEFAULT_CHUNK
                     'message': '知识库里已有同名文档，没有重复导入。'}
         return {'status': 'failed', 'doc_id': '', 'message': message[:300]}
     return {'status': 'uploaded', 'doc_id': str(result.get('DocBizId') or ''), 'message': ''}
+
+
+def set_document_domain(doc_id, domain):
+    values = settings()
+    return api_call('ModifyDoc', {'KbId':values['ADP_KB_ID'], 'DocId':str(doc_id),
+        'Fields':{'EffectiveDomain':int(domain)}, 'UpdateMask':{'Paths':['EffectiveDomain']}},
+        values['ADP_REGION'] or 'ap-guangzhou',values['TENCENT_SECRET_ID'],values['TENCENT_SECRET_KEY'],'new')
+
+
+def document_state(doc_id):
+    values = settings()
+    result = api_call('DescribeDoc',{'KbId':values['ADP_KB_ID'],'DocId':str(doc_id)},
+        values['ADP_REGION'] or 'ap-guangzhou',values['TENCENT_SECRET_ID'],values['TENCENT_SECRET_KEY'],'new')
+    summary = result.get('Summary') or {}
+    return {'status': (summary.get('Lifecycle') or {}).get('Status'),
+            'description': (summary.get('Lifecycle') or {}).get('StatusDesc', ''),
+            'domain': (summary.get('KnowledgeScope') or {}).get('EffectiveDomain')}
+
+
+def wait_document_ready(doc_id, domain=None, timeout=180):
+    deadline = time.monotonic() + timeout
+    delay = 2
+    while True:
+        state = document_state(doc_id)
+        if state['status'] == 8 and (domain is None or state['domain'] == domain):
+            return state
+        if state['status'] == 7 or '失败' in state['description']:
+            raise ValueError('知识库文档处理失败：' + str(state['description'] or state['status']))
+        if time.monotonic() >= deadline:
+            raise ValueError('知识库处理或生效范围确认超时；本地更新尚未生效，可重试。')
+        time.sleep(min(delay,max(0,deadline-time.monotonic())))
+        delay = min(delay*2,15)
 
 
 def check_configuration(config, kb_id, region, api):

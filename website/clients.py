@@ -32,6 +32,22 @@ class KnowledgeBaseClient:
         return adp.push_document(content, filename)
 
     @staticmethod
+    def stage(content,filename):
+        return adp.push_document(content,filename,enable_scope=1)
+
+    @staticmethod
+    def set_domain(doc_id,domain):
+        return adp.set_document_domain(doc_id,domain)
+
+    @staticmethod
+    def wait_ready(doc_id,domain=None):
+        return adp.wait_document_ready(doc_id,domain)
+
+    @staticmethod
+    def state(doc_id):
+        return adp.document_state(doc_id)
+
+    @staticmethod
     def document_names(kb_id, region):
         """知识库里已有的文档名（上传前判重，省一次白传）。"""
         return adp.existing_document_names(kb_id, region)
